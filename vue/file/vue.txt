@@ -1,0 +1,19 @@
+1. 安装 cnpm
+    npm install -g cnpm --registry=https://registry.npm.taobao.org
+
+2. 安装 vue.js
+    cnpm install -g vue
+3. 安装 vue devtools
+
+    下载 vue devtools
+        https://github.com.vuejs/vue-devtools.git
+
+    进入 vue-devtools目录下，安装构建工具所需的依赖
+        cnpm install
+    构建工具
+        npm run build
+
+
+4. vue 中的 data
+    1. 在 vue 实例中 data 是一个对象，也可以是一个 函数
+    2. 在 组件中，data 只能是一个函数，且必须返回一个对象
