@@ -432,7 +432,21 @@
         </script>
 
 12. 双向绑定
-    指令 v-model：
+    指令 v-model：它负责监听用户的输入事件以更新数据
+
+        v-model 在内部使用不同的属性为不同的输入元素并抛出不同的事件：
+           1. text 和 textarea 使用 value 属性和 input 事件；
+           2. checkbox 和 radio 使用 checked 属性和 change 事件；
+           3. select 字段将 value 作为 prop 并将 change 作为事件。
+
+
+        官方有说到，v-model的原理其实是背后有两个操作：
+
+            1. v-bind绑定value属性的值；
+
+            2. v-on绑定input事件监听到函数中，函数会获取最新的值赋值到绑定的属性中；
+
+
         v-model 和 v-show 时vue核心功能中内置的、开发者不可自定义的指令
         可以使用v-model为可输入元素创建双向数据绑定，它会根据元素类型自动选取正确的方法来更新元素
         代码实例如下：
@@ -647,6 +661,31 @@
             </html>
         在自定义组件中，value属性和input事件尤为重要，他们分别负责不同方向的数据传递。value属性用于接收外部传入的值以更新组件内部的状态，
         input事件由开发者决定在什么时候调用，并负责将组件内部的状态同步到外部。
+
+
+        但是像单选框、复选框等类型的输入控件可能会将 value attribute 用于不同的目的。model 选项可以用来避免这样的冲突：
+
+            Vue.component('base-checkbox', {
+              model: {
+                prop: 'checked',
+                event: 'change'
+              },
+              props: {
+                checked: Boolean
+              },
+              template: `
+                <input
+                  type="checkbox"
+                  v-bind:checked="checked"
+                  v-on:change="$emit('change', $event.target.checked)"
+                >
+              `
+            })
+        现在在这个组件上使用 v-model 的时候：这里的 lovingVue 的值将会传入这个名为 checked 的 prop。
+        同时当 <base-checkbox> 触发一个 change 事件并附带一个新的值的时候，这个 lovingVue 的 property 将会被更新。
+
+
+
 
 13. 条件渲染和列表渲染
     13.1 条件渲染
@@ -1524,3 +1563,197 @@
                 </script>
 
         14.6.3 渲染 函数 render
+            render 函数同样也可以用于渲染视图，它提供了回调方法 createElement 以供我们创建 DOM节点。
+            代码如下：
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>渲染函数 render</title>
+                    <style>
+                        .btn {
+                            outline: none;
+                            border: none;
+                            cursor: pointer;
+                            padding: 5px 12px;
+                        }
+
+                        .btn-text {
+                            color: #409eff;
+                            background-color: transparent;
+                        }
+
+                        .btn-text:hover {
+                            color: #66b1ff
+                        }
+                    </style>
+                </head>
+                <body>
+                <div id="app">
+                    <fly-table :fields="fields" :goods="goods">
+                        <span slot="title">Fly Table COmponent</span>
+                    </fly-table>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script type="text/javascript">
+                    Vue.component('fly-table', {
+                        props: {
+                            fields: {
+                                type: Array,
+                                default() {
+                                    return [];
+                                }
+                            },
+                            goods: {
+                                type: Array,
+                                default() {
+                                    return [];
+                                }
+                            }
+                        },
+                        methods: {
+                            reverse() {
+                                this.goods.reverse();
+                            }
+                        },
+
+                        render(createElement) {
+
+                            /**
+                             * -createdElement 的三个参数
+                             * 1. HTML 标签字符串 （String） | 组件选项对象 （Object） | 节点解析函数 （Function）
+                             * 2. 定义节点特性的对象 （Object）
+                             * 3. 子节点，createElement 构建的 VNode 节点 或字符串生成的无标签文本节点 （Array | String）
+                             */
+                            return createElement('div', {
+                                // 作为子组件时的插槽名称
+                                slot: 'fly-table'
+                            }, [
+                                createElement('h2', this.$slots.title),
+                                createElement('button', {
+                                    // clas 用于绑定类名，同 v-bind:class 的绑定方式
+                                    class: ['btn', 'btn-text'],
+                                    // attrs 用于绑定节点一般属性，如 id、disabled、title 等
+                                    attrs: {
+                                        disabled: false,
+                                        title: '点击是数组倒序'
+                                    },
+                                    // domProps 用于绑定节点DOM属性 如 innerHTML  innerText
+                                    domProps: {
+                                        innerText: '倒序'
+                                    },
+                                    on: {
+                                        // 绑定点击事件，使用箭头函数以免创建函数作用域
+                                        click: () => {
+                                            this.goods.reverse();
+                                        }
+                                    },
+                                    // 自定义命令
+                                    directives: [],
+                                    // 其他属性
+                                    key: 'btnReverse',
+                                    ref: 'btnReverse'
+                                }),
+
+                                createElement('table', {
+                                    // style 绑定样式 ，同 v-bind:style 的绑定方式
+                                    style: {
+                                        width: '400px',
+                                        textAlign: 'left',
+                                        lineHeight: '42px',
+                                        border: '1px solid #eee',
+                                        userSelect: 'none'
+
+                                    }
+                                }, [
+                                    createElement('tr', [
+                                        this.fields.map(field => createElement('th', field.prop))
+                                    ]),
+
+                                    this.goods.map(item => createElement('tr', {
+                                            style: {
+                                                color: item.isMarked ? '#ea4335' : ''
+                                            }
+                                        },
+                                        this.fields.map(field => createElement('td', {style: {borderTop: '1px solid #eee'}}, [
+                                            // 如果不是操作列，显示文本，否则显示按钮
+                                            field.prop !== 'operate' ? createElement('span', item[field.prop]) : createElement('button', {
+                                                class: ['btn', 'btn-text'],
+                                                domProps: {
+                                                    innerHTML: '<span>切换标记</span>'
+                                                },
+                                                on: {
+                                                    click: () => {
+                                                        item.isMarked = !item.isMarked;
+                                                    }
+                                                }
+                                            })
+                                        ]))
+                                    ))
+
+                                ])
+                            ]);
+                        }
+                    })
+
+                    let vm = new Vue({
+                        el: '#app',
+                        data() {
+                            return {
+                                fields: [
+                                    {
+                                        label:'名称',
+                                        prop: 'name'
+                                    },
+                                    {
+                                        label:'数量',
+                                        prop: 'quantity'
+                                    },
+                                    {
+                                        label:'价格',
+                                        prop: 'price'
+                                    },
+                                    {
+                                        label:'操作',
+                                        prop: 'operate'
+                                    }
+                                ],
+
+                                goods: [
+                                    {
+                                        name : '苹果',
+                                        quantity: 200,
+                                        price: 6.8,
+                                        isMarked : false
+                                    },
+
+                                    {
+                                        name : '西瓜',
+                                        quantity: 50,
+                                        price: 4.8,
+                                        isMarked : false
+                                    },
+
+                                    {
+                                        name : '榴莲',
+                                        quantity: 0,
+                                        price: 22.8,
+                                        isMarked : false
+                                    },
+                                ]
+
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+
+
+
+        14.6.4
+
+
+    14.7

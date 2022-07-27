@@ -2,19 +2,182 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>计算属性</title>
+    <title>渲染函数 render</title>
+    <style>
+        .btn {
+            outline: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px 12px;
+        }
+
+        .btn-text {
+            color: #409eff;
+            background-color: transparent;
+        }
+
+        .btn-text:hover {
+            color: #66b1ff
+        }
+    </style>
 </head>
 <body>
-<div id="app">target element{{message}}</div>
+<div id="app">
+    <fly-table :fields="fields" :goods="goods">
+        <span slot="title">Fly Table COmponent</span>
+    </fly-table>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
 <script type="text/javascript">
-    let vm = new Vue({
-        el:'#app',
-        data:{
-            message : 0
+    Vue.component('fly-table', {
+        props: {
+            fields: {
+                type: Array,
+                default() {
+                    return [];
+                }
+            },
+            goods: {
+                type: Array,
+                default() {
+                    return [];
+                }
+            }
         },
-        template : '<h1>template element{{message}}</h1>'   // 模板节点将替换原有的DOM节点
+        methods: {
+            reverse() {
+                this.goods.reverse();
+            }
+        },
+
+        render(createElement) {
+
+            /**
+             * -createdElement 的三个参数
+             * 1. HTML 标签字符串 （String） | 组件选项对象 （Object） | 节点解析函数 （Function）
+             * 2. 定义节点特性的对象 （Object）
+             * 3. 子节点，createElement 构建的 VNode 节点 或字符串生成的无标签文本节点 （Array | String）
+             */
+            return createElement('div', {
+                // 作为子组件时的插槽名称
+                slot: 'fly-table'
+            }, [
+                createElement('h2', this.$slots.title),
+                createElement('button', {
+                    // clas 用于绑定类名，同 v-bind:class 的绑定方式
+                    class: ['btn', 'btn-text'],
+                    // attrs 用于绑定节点一般属性，如 id、disabled、title 等
+                    attrs: {
+                        disabled: false,
+                        title: '点击是数组倒序'
+                    },
+                    // domProps 用于绑定节点DOM属性 如 innerHTML  innerText
+                    domProps: {
+                        innerText: '倒序'
+                    },
+                    on: {
+                        // 绑定点击事件，使用箭头函数以免创建函数作用域
+                        click: () => {
+                            this.goods.reverse();
+                        }
+                    },
+                    // 自定义命令
+                    directives: [],
+                    // 其他属性
+                    key: 'btnReverse',
+                    ref: 'btnReverse'
+                }),
+
+                createElement('table', {
+                    // style 绑定样式 ，同 v-bind:style 的绑定方式
+                    style: {
+                        width: '400px',
+                        textAlign: 'left',
+                        lineHeight: '42px',
+                        border: '1px solid #eee',
+                        userSelect: 'none'
+
+                    }
+                }, [
+                    createElement('tr', [
+                        this.fields.map(field => createElement('th', field.prop))
+                    ]),
+
+                    this.goods.map(item => createElement('tr', {
+                            style: {
+                                color: item.isMarked ? '#ea4335' : ''
+                            }
+                        },
+                        this.fields.map(field => createElement('td', {style: {borderTop: '1px solid #eee'}}, [
+                            // 如果不是操作列，显示文本，否则显示按钮
+                            field.prop !== 'operate' ? createElement('span', item[field.prop]) : createElement('button', {
+                                class: ['btn', 'btn-text'],
+                                domProps: {
+                                    innerHTML: '<span>切换标记</span>'
+                                },
+                                on: {
+                                    click: () => {
+                                        item.isMarked = !item.isMarked;
+                                    }
+                                }
+                            })
+                        ]))
+                    ))
+
+                ])
+            ]);
+        }
+    })
+
+    let vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                fields: [
+                    {
+                        label:'名称',
+                        prop: 'name'
+                    },
+                    {
+                        label:'数量',
+                        prop: 'quantity'
+                    },
+                    {
+                        label:'价格',
+                        prop: 'price'
+                    },
+                    {
+                        label:'操作',
+                        prop: 'operate'
+                    }
+                ],
+
+                goods: [
+                    {
+                        name : '苹果',
+                        quantity: 200,
+                        price: 6.8,
+                        isMarked : false
+                    },
+
+                    {
+                        name : '西瓜',
+                        quantity: 50,
+                        price: 4.8,
+                        isMarked : false
+                    },
+
+                    {
+                        name : '榴莲',
+                        quantity: 0,
+                        price: 22.8,
+                        isMarked : false
+                    },
+                ]
+
+            }
+        }
     })
 </script>
 </body>
