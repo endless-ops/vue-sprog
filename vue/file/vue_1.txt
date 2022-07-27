@@ -937,4 +937,590 @@
 
             实质上，key 的存在是为DOM节点标注了一个身份信息，让Vue能够有迹可循追踪到数据对应的节点。在实战开发中，是否使用key都不会影响功能的实现。
 
-14. 数据选项
+14. 选项
+    14.1 数据选项
+        数据（data）选项可接收的类型有对象和函数两种，
+        定义一个组件时，数据选项只能接收函数类型。
+        代码实例如下：
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>HTML插值-插值绑定</title>
+                <style>
+                    .align-center {
+                        text-align: center;
+                    }
+                </style>
+            </head>
+            <body>
+            <div id="app" style="width: 800px;margin: 0 auto;">
+                <h1>{{title}}</h1>
+                <button-counter></button-counter>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+            <script type="text/javascript">
+                Vue.component('button-counter',{
+                    data () {
+                        return {
+                            counter: 1
+                        }
+                    },
+                    template : '<button @click="counter++">clicked {{counter}} times</button>'
+                })
+
+
+                // let vm = new Vue({
+                //     el : '#app',  // mount 到 DOM 上
+                //     data : {  // 对象类型
+                //         title: 'A Vue App'
+                //     }
+                // })
+
+                let vm = new Vue({
+                    el : '#app', // mount 到 DOM 上
+                    data() {   //函数类型
+                        return {
+                            title:'A Vue App'
+                        }
+                    }
+                })
+            </script>
+            </body>
+            </html>
+
+        在vue中声明组件时，如果使用了对象类型的data选项，模板将找不到在data中声明的数据。如果使用了支持vue模板的语法检察权，开发者将得到错误提示 ‘data property in component must be a function’
+
+
+        Vue 会递归地将data选项中的数据加入响应式系统，但这些数据应该是声明的时候即存在的。下面 来看一段代码 （单文件组件模板）:
+            <template>
+                <div>
+                    <h2>{{title}}</h2>
+                    <p>{{profile}}</p>
+                </div>
+            </template>
+
+            <script>
+                export default{
+                    name:'Instance',
+                    data () {
+                        return {
+                            title : 'A Vue App'
+                        }
+                    },
+                    created () {
+                        Object.assign(this.$data,{  // 为对象赋值属性，没有则添加属性，有则覆盖原有的属性值
+                            profile : 'This is a Vue App'
+                        })
+
+                        console.log(this.$data)
+                    }
+                }
+            </script>
+
+        title 是在初始化实例时声明在data选项中的数据，而profile则是在created钩子函数中被赋予data选项的。可以看出，profile被赋予data选项后，视图没有发生任何变化，这是因为
+        vue在处理数据时，并未把profile加入数据响应式系统。又因为 profile 是在实例创建完成后被绑定到组件上的，所以vue给出了错误提示 ‘profile is not defined’。
+        此时的profile 只是一个普通js属性，而非被vue观察的对象。
+
+        在实际开发中，应将可能在实例中被观察的对象预先在data选项中声明，以任何浏览器所支持的原生api 都无法将数据动态加入响应式系统，不过vue针对这一需求，也提供了响应的机制。
+        开发者可以使用 $set 方法 为 data 选项动态绑定数据，但其也无法挂载响应数据到data根节点。不过，既然这些数据要绑定到 $data 根节点上，何不在初始化时声明呢？
+
+        $set 用法如下：
+            /**
+             * target 目标对象     Object | Array
+             * key    键名         String | Number
+             * value 键值          任意类型
+             */
+             // Vue.set(target,key,value)
+             created () {
+                this.$set(target,key,value)
+             }
+
+        下面将分别演示使用原生方法 Object.assign 和 Vue.$set为组件挂载响应式数据的实例
+        关于 Object.assign的代码如下：
+            <template>
+                <div>
+                    <h2>{{title}}</h2>
+                    <p>{{obj.profile}}</p>
+                    <button @click="toggle">toggle</button>
+                </div>
+            </template>
+            <script>
+                export default {
+                    name : 'instance',
+                    data () {
+                        return {
+                            title : 'A Vue App',
+                            obj : {}  // $set 不能用在根节点 data 上
+                        }
+                    },
+
+                    created () {
+                        Object.assign(this.obj,{
+                            profile : 'This is a Vue App'
+                        })
+
+                        console.log('created',this.obj)
+                    },
+
+                    mounted () {
+                         Object.assign(this.obj,{
+                            profile : 'This is a Vue Test App'
+                        })
+
+                        console.log('created',this.obj)
+                    },
+
+                    methods : {
+                        toggle () {
+                            Object.assign(this.obj,{
+                                profile : 'This is a Vue App for test'
+                            })
+
+                            console.log('toggle',this.obj)
+                        }
+                    }
+
+                }
+            </script>
+
+        相比之前使用 Object.assign 的示例，这次的视图表现更显奇怪，vue不仅没有提示错误，还响应了在 created 钩子函数 中所做的修改，从
+        生命周期角度分析：
+            1. 在组件实例被创建式 （beforeCreate 和 create 之间）时，obj对象作为 data选项的属性存在与实例中，且拥有合法的地址
+            2. 在created 钩子函数中，将profile挂载在obj对象上，obj.profile 由undefined 变为 被赋予的值。由于 obj.profile 被赋值时，实例
+                已经过了将数据加入响应式系统的阶段，所以 ob.profile 并未被观察。又因为实例尚未和Dom节点绑定（beforeMount
+                ），所以此时修改 profile 依然可以影响之后的视图表现（profile的视图表现是在实例created时被赋予的）。
+            3. 在mounted钩子函数和click事件中，由于实例已经绑定到DOM节点上且profile不存在于响应式系统中，所以此时修改profile，视图没有发生变化。
+
+        将代码稍作修改，在created中以 $set 的方式为对象绑定属性，代码如下：
+            created () {
+                this.$set(this.obj,'profile','This is a Vue App'
+                console.log('created',this.obj)
+            }
+        此时的profile被加入vue 的响应式系统，当笔者点击按钮时，视图也发生了变化，
+        需要注意的是：不要将已有内存地址的对象用于data选项，我们应该创建新对象。
+
+        已有内存地址的代码如下：
+            <div id="app">
+                <button-counter></button-counter>
+                <button-counter></button-counter>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+            <script>
+                let jack = {counter:0};
+                Vue.component('button-counter',{
+                    data () {
+                        return jack;
+                    },
+                    template : '<button @click="counter++">click {{{counter}} </button>'
+                })
+
+                let vm = new Vue({
+                    el: '#app'
+
+                });
+            </script>
+
+        使用创建新的对象：
+             <div id="app">
+                <button-counter></button-counter>
+                <button-counter></button-counter>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+            <script>
+
+                Vue.component('button-counter',{
+                    data () {
+                        return {
+                            counter: 0
+                        }
+
+
+                    },
+                    template : '<button @click="counter++">click {{{counter}} </button>'
+                })
+
+                let vm = new Vue({
+                    el: '#app'
+
+                });
+            </script>
+
+            或者使用 JSON.parse(JSON.stringify(obj))深拷贝已有对象
+                <div id="app">
+                    <button-counter></button-counter>
+                    <button-counter></button-counter>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let jack = {counter:0};
+                    Vue.component('button-counter',{
+                        data () {
+                            return JSON.parse(JSON.stringify(jack));
+                        },
+                        template : '<button @click="counter++">click {{{counter}} </button>'
+                    })
+
+                    let vm = new Vue({
+                        el: '#app'
+
+                    });
+                </script>
+
+            以上两种方式，目的都是为实例的data选项分配一个新的内存地址.
+
+    14.2 属性选项
+        Vue 为组件开发提供了 属性【props】 选项，我们可以使用它为组件注册动态特性，处理业务间的差异，使代码可以复用于相似的应用场景。
+
+        props 选项可以是数组或者对象类型，用于接收从 父组件 传递过来的参数，并允许开发者为其设置默认值，类型检测和校验规则等。
+        代码如下：
+            <div id="app">
+                <color-text text="Hello World"></color-text>
+                <br>
+                <color-text></color-text>
+                <br>
+                <color-text color="#f78" text="Hello World"></color-text>
+                <br>
+                <color-text color="#43dt" text="Hello World"></color-text>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+            <script>
+                Vue.component('color-text',{
+                    props:{
+                        text: String,
+                        color : {
+                            type:String,
+                            default:'#000',
+                            required:true,
+                            validator () {
+                                return /^([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(value);
+                            }
+                        }
+                    },
+                    template : '<span :style="{color:color}">{{text}}</span>'
+                })
+
+                let vm = new Vue({
+                    el:'#app'
+                })
+            </script>
+
+    14.3 方法选项
+        代码1：
+            let store1 = {
+                msg : 'Hello World',
+                logMSG () {
+                    console.log("=================匿名函数=========================")
+                    console.log(this.msg)
+                }
+            }
+
+            store1.logMsg();
+
+        代码2：
+            let store2 = {
+                msg : 'Hello World',
+                logMSG : () => {
+                    console.log("=================箭头函数=========================")
+                    console.log(this.msg)
+                }
+            }
+
+            store2.logMsg();
+
+        使用 箭头函数 定义方法时并不会创建函数作用域，因此 this 也不会指向其父级实例，此时的this会向上追踪，当找到某本函数作用域时，this将指向该函数的父级实例；
+        否则，this将指向浏览器的内置对象 window
+
+        methods 选项 不能使用箭头函数 在其中定义方法。在创建组件时，methods中的方法将被绑定到vue实例上，方法中的this也将自动指向vue实例。
+
+    14.4 计算属性
+        计算属性 computed 选项 设计的初衷在于减轻模板上的业务负担，当数据链上出现复杂的衍生数据时，期望以一种易维护的方式使用它
+        下面示例没有使用 computed 属性的场景：
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>计算属性</title>
+            </head>
+            <body>
+            <div id="app" style="font-family: Roboto,sans-serif; color : rgb(84.92.100);margin-left: 100px;">
+                <h2>英语中的“互文”</h2>
+                <p>我们先来看三句话 (代码)：</p>
+                <p>{{message}}.&nbsp;&nbsp;我看到的是车还是猫。</p>
+                <p>{{message.replace(/\s/g,'')}}</p>
+                <p>{{message.replace(/\s/g,'').split('').reverse().join('')}}</p>
+                <p>英语中也有“互文”的修辞手法，比如{{message}}这句话</p>
+                <p>将句中空格去掉可得 {{message.replace(/\s/g,'')}},</p>
+                <p>将句中空格去掉并将其倒序可得 {{message.replace(/\s/g,'').split('').reverse().join('')}}.</p>
+                <p>可以看到，{{message.replace(/\s/g,'')}} = {{message.replace(/\s/g,'').split('').reverse().join('')}}，</p>
+                <p>这是互文英语的一个示例</p>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+            <script type="text/javascript">
+
+                let vm = new Vue({
+                    el : '#app', // mount 到 DOM 上
+                    data() {   //函数类型
+                        return {
+                            message : 'WAS IT A CAR OR A CAT I SAW'
+                        }
+                    }
+                })
+            </script>
+            </body>
+            </html>
+
+        基于 computed 选项 重构的示例：
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>计算属性</title>
+            </head>
+            <body>
+            <div id="app" style="font-family: Roboto,sans-serif; color : rgb(84.92.100);margin-left: 100px;">
+                <h2>英语中的“互文”</h2>
+                <p>我们先来看三句话 (代码)：</p>
+                <p>{{message}}.&nbsp;&nbsp;我看到的是车还是猫。</p>
+                <p>{{noSpaceMsg}}</p>
+                <p>{{palindromeMsg}}</p>
+                <p>英语中也有“互文”的修辞手法，比如{{message}}这句话</p>
+                <p>将句中空格去掉可得 {{noSpaceMsg}},</p>
+                <p>将句中空格去掉并将其倒序可得 {{palindromeMsg}}.</p>
+                <p>可以看到，{{noSpaceMsg}} = {{palindromeMsg}}，</p>
+                <p>这是互文英语的一个示例</p>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+            <script type="text/javascript">
+
+                let vm = new Vue({
+                    el : '#app', // mount 到 DOM 上
+                    data() {   //函数类型
+                        return {
+                            message : 'WAS IT A CAR OR A CAT I SAW'
+                        }
+                    },
+                    computed : {
+                        noSpaceMsg() {
+                            return this.message.replace(/\s/g,'')
+                        },
+                        palindromeMsg() {
+                            return this.message.replace(/\s/g,'').split('').reverse().join('');
+                        }
+                    }
+                })
+            </script>
+            </body>
+            </html>
+
+        与methods 一样，computed 不能以箭头函数声明，同时 它也会被混入 vue示例，并可通过this调用。
+        由于 计算属性 依赖于 响应式属性，所以当且仅当 响应式属性变化时，计算属性才会被重新计算，而且得到的结果将会被缓存，一直到响应式属性再次被修改时。
+        相比于methods函数求值，这是一种更为高效的机制。
+
+        vue允许开发者为computed属性赋值
+        开发者有权定义可被赋值的computed属性，方法类似于定义对象属性描述符中的setter和getter。示例代码如下：
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>计算属性</title>
+            </head>
+            <body>
+            <div id="app">
+                <h2>数据变化之前
+                    <i style="color:#ababab;font-size: 14px;">
+                        * 指令 v-once 可以限制 视图不再响应数据变化
+                    </i>
+                </h2>
+                <p v-once>{{message}}</p>
+                <p v-once>{{noSpaceMsg}}</p>
+                <h2>数据变化之后</h2>
+                <p>{{message}}</p>
+                <p>{{noSpaceMsg}}</p>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+            <script type="text/javascript">
+
+                let vm = new Vue({
+                    el : '#app', // mount 到 DOM 上
+                    data() {   //函数类型
+                        return {
+                            message : 'WAS IT A CAR OR A CAT I SAW'
+                        }
+                    },
+                    computed : {
+                        noSpaceMsg : {
+                            set (value) {
+                                this.message = value;
+                            },
+
+                            get () {
+                                return this.message.replace(/\s/g,'');
+                            }
+                        }
+                    }
+                })
+            </script>
+            </body>
+            </html>
+
+    14.5 侦听属性
+        Vue 允许开发者使用侦听属性（watch选项）为实例添加被观察对象，并在对象被修改时调用开发自定义的方法。
+        代码如下：
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>计算属性</title>
+            </head>
+            <body>
+            <div id="app">
+                <h2>数据变化之前
+                    <i style="color:#ababab;font-size: 14px;">
+                        * 指令 v-once 可以限制 视图不再响应数据变化
+                    </i>
+                </h2>
+                <p v-once>{{message}}</p>
+                <p v-once>{{noSpaceMsg}}</p>
+                <h2>数据变化之后</h2>
+                <p>{{message}}</p>
+                <p>{{noSpaceMsg}}</p>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+            <script type="text/javascript">
+
+                let vm = new Vue({
+                    el : '#app', // mount 到 DOM 上
+                    data() {   //函数类型
+                        return {
+                            message : 'WAS IT A CAR OR A CAT I SAW',
+                            noSpaceMsg : 'WASITACARORACATISAW'
+                        }
+                    },
+                    watch : { // 使用watch实现，当元数据变化时，同步衍生数据的状态
+                        message (newValue,oldValue) {  // message: 表示被观测的对象属性，如 data选项中的 message,事实证明，有没有参数都一样可以实现
+                            this.noSpaceMsg = this.message.replace(/\s/g,'');
+                        }
+                    }
+                })
+            </script>
+            </body>
+            </html>
+        由于 watch 更注重于处理数据变化时的业务逻辑，而computed 更注重于衍生数据，因此，与 computed 相比，watch 还优于 可以异步修改数据。
+        代码如下：
+            import axios from 'axios'
+            let vm = new Vue({
+                el : '#app',
+                data () {
+                    return {
+                        message : '书山有路勤为径，学海无涯苦作舟',
+                        remoteMsg: ''
+                    }
+                },
+                watch : {
+                    message(newValue,oldValue ){
+                        axios ({
+                            method:'GET',
+                            url: '/someurl',
+                            params: {
+                                message : newValue
+                            }
+                        }).then(res => {
+                            this.remoteMsg = res.data.message; // 接收响应后，异步修改数据
+                        })
+                    }
+                }
+            })
+
+        vue 还为watch提供了丰富的声明方式，代码如下：
+            let vm = new Vue({
+                el:'#app',
+                data() {
+                    return {
+                        msg: {
+                            sender:'Jack',
+                            receiver: 'Rose'
+                        }
+                    }
+                },
+                methods: {
+                    logLine() {
+                        console.log("===========================分割线============================")
+                    },
+                    logMsg(newValue,oldValue) {
+                        console.log(newValue)
+                    }
+                },
+                watch: {
+                    msg :{
+                        handler : 'logMsg',
+                        deep: true, // 深度冠词，对象任何层级数据发生变化，watch方法都会被触发
+                        immediate : true // 立即调用： 在侦听开始时立即调用一次watch方法
+                    },
+                    'msg.sender':['logLine','logMsg'] // 数组方式，可以调用多个方法
+                }
+            })
+
+
+    14.6 DOM渲染
+        14.6.1 指定被挂载元素
+            el 选项 可用于指定 vue实例的挂载目标，属性值仅限于 CSS 选择器 或者DOM节点对象
+            代码如下：
+                <style>
+                    .fixed-width {
+                        display:inline-block;
+                        width: 100px;
+                    }
+                </style>
+                <p id="app"><strong class="fixed-width">CSS选择器：</strong>{{ msg }}</p>
+                <p id="app2"><strong class="fixed-width">DOM节点：</strong>{{ msg }}</p>
+                <p id="app3"><strong class="fixed-width">手动挂载：</strong>{{ msg }}</p>
+                <button onclick="handleMount()">手动挂载</button>
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let vm = new Vue({
+                        el:'#app',
+                        data() {
+                            return {
+                                msg : 'Hello World'
+                            }
+                        }
+                    })
+
+                    let vm2 = new Vue({
+                        el: document.getElementById('app2'),
+                        data() {
+                            return {
+                                msg : 'Hello World'
+                            }
+                        }
+                    })
+
+                    let vm3 = new Vue({
+
+                        data() {
+                            return {
+                                msg : 'Hello World'
+                            }
+                        }
+                    })
+
+                    let handleMount = function() {
+                        vm3.$mount("#app3");
+                    }
+                </script>
+
+            上述三种方式得到的结果都一样
+
+        14.6.2  视图的字符串模板
+            Vue 允许开发者使用字符串作为实例的模板，模板字符串有 template 选项接收，示例代码如下：
+                <div id="app">target element</div>
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let vm = new Vue({
+                        el:'#app',
+                        template : '<h1>template element</h1>'   // 模板节点将替换原有的DOM节点
+                    })
+                </script>
+
+        14.6.3 渲染 函数 render
