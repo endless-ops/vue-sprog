@@ -1618,6 +1618,11 @@
                             }
                         },
 
+                        /**
+                         * -render函数
+                         * -参数：createElement函数
+                         * -返回值：必须返回一个createElement函数的调用结果，也就是模版内的顶层元素（这个方法在vue2的习惯性使用中经常用h来命名）
+                         */
                         render(createElement) {
 
                             /**
@@ -1750,10 +1755,68 @@
                 </body>
                 </html>
 
+            template 和 render 选项均是用于增加JS代码以减少 HTML 代码的开发，这样做的好处有两个：
+                1. 使开发者可以聚焦于JS代码的书写
+                2. 更贴近于Vue的底层编译器
+            相比于template，reendee函数充分地体现了JS的完全编程能力（脱离html和css代码的开发）
+
+            借助于 babel-plugin-transform-vue-jsx插件，开发者亦可以使用JSX语法
 
 
+            事件修饰符
+            修饰符                         前缀               说明
+            .passive                        &               移动端，限制事件永不调用 preventDefault()方法
+            .capture                        !               当事件触发时，阻止事件捕获
+            .once                           ~               事件被触发一次后即解除监听
+            .capture.once/.once.capture     ~!              事件被触发一次后即解除监听并阻止事件捕获
 
-        14.6.4
+            用法如下：
+                on: {
+                    '!click':() =? {}, // .capture
+                    '~keyup':() => {}, // .once
+                    '~!mouseover': () => {} // .capture.once
+                }
 
 
-    14.7
+            其他的一些事件修饰符，开发者可以使用原生JS编写。如下：
+
+            部分事件修饰符与原生JS的对照表
+            修饰符                 原生JS
+            .stop                   event.stopPropagation()
+            .prevent                event.preventDefault()
+            .self                   if(event.target  != event.currentTarget) return
+            .enter/.13              if(event.keyCode !== 13) return
+            .ctrl                   if(!event.ctrlKey) return
+
+            用法如下：
+                on : {
+                    keyup: function(event) {
+                        //.self
+                        if(event.target !== event.currentTarget) return
+                        // .shift && .enter(.13)
+                        if(!event.shiftKey || event.keyCode !== 13) return
+                        // .stop
+                        event.stopPropagation()
+                        // .prevent
+                        event.preventDefault()
+                    }
+                }
+
+            在HTML中，任何内容都是节点，即使没有标签的文本也是节点，层层节点嵌套，形成一颗DOM树。
+            在DOM中查询和更新节点是一件比较低效的工作，为此，Vue提供了renter函数和虚拟DOM，虚拟DOM将对真实的DOM发生的变化进行跟踪，
+            以降低DOM查询的用时。
+
+            与 document.createElement不同的是，render的createElement创建的并不是真是的DOM节点，而是虚拟节点 （Virtual Node，VNode），
+            含有开发者描述的信息。由VNode组成的树形结构即 “虚拟节点”，Vue将通过虚拟DOM在页面上渲染出真实的DOM
+
+
+            在组件树中，VNode必须保持其身份唯一，以便vue一一对应地对每个真实的DOM节点进行跟踪
+
+        14.6.4 选项优先级
+            优先级             高低（越往后，优先级越低）
+            render              1
+            template            2
+            el                  3
+
+
+    14.7 封装复用
