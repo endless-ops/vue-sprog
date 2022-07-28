@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
-    <title>渲染函数 render</title>
+    <title>动态组件-内置组件</title>
     <style>
         .btn {
             outline: none;
@@ -17,165 +17,111 @@
         }
 
         .btn-text:hover {
-            color: #66b1ff
+            color: #66b1ff;
+        }
+
+        .fly-table {
+            width: 400px;
+            text-align: left;
+            line-height: 42px;
+            border: 1px solid #eee;
+            user-select: none;
         }
     </style>
 </head>
 <body>
 <div id="app">
-    <fly-table :fields="fields" :goods="goods">
-        <span slot="title">Fly Table COmponent</span>
+    <h2>Fly Table Component</h2>
+    <button class="btn btn-text"
+            title="点击使数组倒序"
+            @click="handleReverse">
+        倒序
+    </button>
+
+    <fly-table
+            :fields="fields"
+            :goods="goods">
+
+        <!-- 租价标签包裹着的内容将被分发 -->
+        <!-- 思考下：是否可以在fly-table组件中直接书写这段代码？ -->
+        <template slot-scope="{row , col}">
+            <span v-if="col.prop !== 'operate'">
+                {{ row[col.prop] }}
+            </span>
+            <button class="btn btn-text" v-else @click="handleMarked(row)">
+                切换标记
+            </button>
+        </template>
     </fly-table>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
-<script type="text/javascript">
-    Vue.component('fly-table', {
+<script>
+    let flyTable = {
         props: {
             fields: {
                 type: Array,
                 default() {
-                    return [];
+                    return []
                 }
             },
+
             goods: {
                 type: Array,
                 default() {
-                    return [];
+                    return []
                 }
             }
         },
-        methods: {
-            reverse() {
-                this.goods.reverse();
-            }
-        },
-
-        render(createElement) {
-            console.log("==================",createElement);
-            /**
-             * -createdElement 的三个参数
-             * 1. HTML 标签字符串 （String） | 组件选项对象 （Object） | 节点解析函数 （Function）
-             * 2. 定义节点特性的对象 （Object）
-             * 3. 子节点，createElement 构建的 VNode 节点 或字符串生成的无标签文本节点 （Array | String）
-             */
-            return createElement('div', {
-                // 作为子组件时的插槽名称
-                slot: 'fly-table'
-            }, [
-                createElement('h2', this.$slots.title),
-                createElement('button', {
-                    // clas 用于绑定类名，同 v-bind:class 的绑定方式
-                    class: ['btn', 'btn-text'],
-                    // attrs 用于绑定节点一般属性，如 id、disabled、title 等
-                    attrs: {
-                        disabled: false,
-                        title: '点击是数组倒序'
-                    },
-                    // domProps 用于绑定节点DOM属性 如 innerHTML  innerText
-                    domProps: {
-                        innerText: '倒序'
-                    },
-                    on: {
-                        // 绑定点击事件，使用箭头函数以免创建函数作用域
-                        click: () => {
-                            this.goods.reverse();
-                        }
-                    },
-                    // 自定义命令
-                    directives: [],
-                    // 其他属性
-                    key: 'btnReverse',
-                    ref: 'btnReverse'
-                }),
-
-                createElement('table', {
-                    // style 绑定样式 ，同 v-bind:style 的绑定方式
-                    style: {
-                        width: '400px',
-                        textAlign: 'left',
-                        lineHeight: '42px',
-                        border: '1px solid #eee',
-                        userSelect: 'none'
-
-                    }
-                }, [
-                    createElement('tr', [
-                        this.fields.map(field => createElement('th', field.prop))
-                    ]),
-
-                    this.goods.map(item => createElement('tr', {
-                            style: {
-                                color: item.isMarked ? '#ea4335' : ''
-                            }
-                        },
-                        this.fields.map(field => createElement('td', {style: {borderTop: '1px solid #eee'}}, [
-                            // 如果不是操作列，显示文本，否则显示按钮
-                            field.prop !== 'operate' ? createElement('span', item[field.prop]) : createElement('button', {
-                                class: ['btn', 'btn-text'],
-                                domProps: {
-                                    innerHTML: '<span>切换标记</span>'
-                                },
-                                on: {
-                                    click: () => {
-                                        item.isMarked = !item.isMarked;
-                                    }
-                                }
-                            })
-                        ]))
-                    ))
-
-                ])
-            ]);
-        }
-    })
+        template: function () {
+            return '<table class="fly-table">\n' +
+                '<tr>\n' +
+                '   <th \n' +
+                'v-for="(col,cIndex) in fields"' +
+                ':key="cIndex">\n' +
+                '{{col.label}}' +
+                '</th>' +
+                '</tr>' +
+                '<tr \n' +
+                'v-for="(row,rIndex) in goods"\n' +
+                ':key="rIndex"\n' +
+                ':style="{color:row.isMarked ? \'#ea4335\' : \'\'}">\n' +
+                '<td \n' +
+                'style="border-top: 1px solid #eee"\n' +
+                'v-for="(col,cIndex) in fields"\n' +
+                ':key="cIndex">\n' +
+                // slot 应写在子组件中，用于接收父组件分发的内容
+                '<slot :row="row" :col="col"></slot>\n' +
+                '</td>' +
+                '</tr>' +
+                '</table>'
+        }()
+    }
 
     let vm = new Vue({
         el: '#app',
+        components: {flyTable},
         data() {
             return {
                 fields: [
-                    {
-                        label:'名称',
-                        prop: 'name'
-                    },
-                    {
-                        label:'数量',
-                        prop: 'quantity'
-                    },
-                    {
-                        label:'价格',
-                        prop: 'price'
-                    },
-                    {
-                        label:'操作',
-                        prop: 'operate'
-                    }
+                    {label: '名称', prop: 'name'},
+                    {label: '数量', prop: 'quantity'},
+                    {label: '价格', prop: 'price'},
+                    {label: '操作', prop: 'operate'}
                 ],
-
                 goods: [
-                    {
-                        name : '苹果',
-                        quantity: 200,
-                        price: 6.8,
-                        isMarked : false
-                    },
-
-                    {
-                        name : '西瓜',
-                        quantity: 50,
-                        price: 4.8,
-                        isMarked : false
-                    },
-
-                    {
-                        name : '榴莲',
-                        quantity: 0,
-                        price: 22.8,
-                        isMarked : false
-                    },
+                    {name: '苹果', quantity: 200, price: 6.8, isMarked: false},
+                    {name: '榴莲', quantity: 50, price: 4.8, isMarked: false},
+                    {name: '西瓜', quantity: 0, price: 22.8, isMarked: false},
                 ]
-
+            }
+        },
+        methods: {
+            handleReverse() {
+                this.goods.reverse();
+            },
+            handleMarked(row) {
+                row.isMarked = !row.isMarked;
             }
         }
     })

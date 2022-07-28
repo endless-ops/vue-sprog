@@ -1820,3 +1820,683 @@
 
 
     14.7 封装复用
+        14.7.1 过滤器
+            filters选项用于定义在当前组件或实例作用域中可用的过滤器，可在 双括号插值中添加在 JavaScript 表达式的尾部，以管道符号 “|” 与 表达式隔开，表达式的值将作为参数传入filter中，
+            代码如下：
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>过滤器-封装复用</title>
+                </head>
+                <body>
+                <div id="app">
+                    <h1>{{title}}</h1>
+                    <h1>{{title | supplyTitle1}}</h1>
+                    <h1>{{title | supplyTitle1 | supplyTitle2}}</h1>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let vm = new Vue({
+                        el:'#app',
+                        data() {
+                            return {
+                                title:'Test#%for#%Filter'
+                            }
+                        },
+                        filters :{
+                            supplyTitle1 (value) {
+                                console.log("Supply Title 1");
+                                return value.replace(/#/g,' ')
+                            },
+                            supplyTitle2 (value) {
+                                console.log("Supply Title 2");
+                                return value.replace(/%/g,' ')
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+            当存在多个filter时，vue将从左向右执行过滤，并将上一次过滤的结果作为下一次的过滤的输入值。
+            除在组件中定义filter之外，还允许在全局定义filter，全局filter的使用方法与选项filter一样，定义代码如下
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>过滤器-封装复用</title>
+                </head>
+                <body>
+                <div id="app">
+                    <h1>{{ title }}</h1>
+                    <h1>{{ title | supplyTitle1 }}</h1>
+                    <h1>{{ title | supplyTitle1 | supplyTitle2 }}</h1>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+
+                    Vue.filter('supplyTitle1', value => {
+                            console.log("Supply Title 1");
+                            return value.replace(/#/g, ' ')
+                        }
+                    )
+
+                    Vue.filter('supplyTitle2', value => {
+                            console.log("Supply Title 1");
+                            return value.replace(/%/g, ' ')
+                        }
+                    )
+
+                    let vm = new Vue({
+                        el: '#app',
+                        data() {
+                            return {
+                                title: 'Test#%for#%Filter'
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+        14.7.2 自定义指令
+            Vue允许使用一些自定义的指令。在组件或者实例中，这些自定义指令应该被声明在directives选项中，
+            vue为自定义指令提供了如下几个钩子函数（均为可选）:
+                bind: 指令与元素绑定时调用
+                inserted: 指令绑定的元素被挂载到父元素上时调用。
+                update: 指令所在VNode 更新时调用，可能发生在其子VNode更新之前。
+                componentUpdated： 指令所在VNode及其子VNode全部更新后调用
+                unbind: 指令与元素解绑时调用
+
+            同时，钩子函数会被传入以下参数
+                el: 指定所绑定的元素，用于操作DOM，
+                binding: 包含指令相关属性的时候
+                vnode ：虚拟节点
+                oldVnode ：虚拟节点更新前的值，仅在 update和componentUpdated钩子函数中可用.
+            binding包含以下属性:
+                name ：指令名称
+                value ：指令绑定的值，如在v-some=“2*2”中，绑定值为4
+                oldValue ：指令值改变前的值，仅在update和componentUpdated钩子函数中可用
+                expression ：字符串类型的指令表达式，  如在v-some=“2*2”中，值为 “2*2”
+                arg ：传给指令的参数，如在 v-some:someValue中，值为“someValue”
+                modifiers：修饰符对象，如在 v-some.upper中 值为 {upper:true}
+
+            代码如下：
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>过滤器-封装复用</title>
+                </head>
+                <body>
+                <div id="app">
+                    <h1 v-some.upper>{{ title }}</h1>
+                    <h1 v-some.lower>{{ title }}</h1>
+                    <h1 v-style="style">{{ title }}</h1>
+
+                    <button @click="handleStyle">修改 v-style</button>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+
+                    let vm = new Vue({
+                        el: '#app',
+                        data() {
+                            return {
+                                title: 'Test for Directive.',
+                                style: {
+                                    fontStyle: 'italic'
+                                }
+                            }
+                        },
+                        methods: {
+                            handleStyle() {
+                                this.$set(this.style, 'color', '#ababab')
+                                this.$set(this.style, 'transform', 'rotateX(45deg)')
+                            }
+                        },
+
+                        directives: {
+                            style: { // 用于为节点绑定样式
+                                bind(el, binding, vnode) {
+                                    console.log("%c---------------------------bind参数：el，binding，vnode--------------------", 'font-size:18px;');
+                                    console.log('%o\n\n%o\n\n%o', el, binding, vnode);
+                                    let styles = binding.value;     // 获取指令绑定的值
+                                    Object.keys(styles).forEach(key => el.style[key] = styles[key])
+                                },
+                                update(el, binding, vnode, oldVnode) {
+                                    console.log("%c---------------------------update参数：el，binding，vnode，oldVnode--------------------", 'font-size:18px;');
+                                    let styles = binding.value;     // 获取指令绑定的值
+                                    Object.keys(styles).forEach(key => el.style[key] = styles[key])
+                                }
+                            },
+                            // 在binding 和update 时触发相同行为，且 无需定义其他钩子函数
+                            // 指令可以简写为以下形式
+                            some (el,binding) {
+                                let text = el.innerText;
+                                let modifiers = binding.modifiers;
+                                if(modifiers.upper) { // 如果带有upper后缀，则大写文本
+                                    el.innerText = text.toUpperCase();
+                                }
+                                if (modifiers.lower) {
+                                    el.innerText = text.toLowerCase();
+                                }
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+            同filter 一样，Vue也允许开发者定义全局指令，定义方式代码如下：
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>过滤器-封装复用</title>
+                </head>
+                <body>
+                <div id="app">
+                    <h1 v-some.upper>{{ title }}</h1>
+                    <h1 v-some.lower>{{ title }}</h1>
+                    <h1 v-style="style">{{ title }}</h1>
+
+                    <button @click="handleStyle">修改 v-style</button>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    Vue.directive('style', {
+                        bind: function (el, binding, vnode) {
+                            console.log("%c---------------------------bind参数：el，binding，vnode--------------------", 'font-size:18px;');
+                            console.log('%o\n\n%o\n\n%o', el, binding, vnode);
+                            let styles = binding.value;     // 获取指令绑定的值
+                            Object.keys(styles).forEach(key => el.style[key] = styles[key])
+                        },
+                        update: function (el, binding, vnode, oldVnode) {
+                            console.log("%c---------------------------update参数：el，binding，vnode，oldVnode--------------------", 'font-size:18px;');
+                            let styles = binding.value;     // 获取指令绑定的值
+                            Object.keys(styles).forEach(key => el.style[key] = styles[key])
+                        }
+                    })
+
+                    Vue.directive('some', function (el, binding) {
+                        let text = el.innerText;
+                        let modifiers = binding.modifiers;
+                        if (modifiers.upper) { // 如果带有upper后缀，则大写文本
+                            el.innerText = text.toUpperCase();
+                        }
+                        if (modifiers.lower) {
+                            el.innerText = text.toLowerCase();
+                        }
+                    })
+
+                    let vm = new Vue({
+                        el: '#app',
+                        data() {
+                            return {
+                                title: 'Test for Directive.',
+                                style: {
+                                    fontStyle: 'italic'
+                                }
+                            }
+                        },
+                        methods: {
+                            handleStyle() {
+                                this.$set(this.style, 'color', '#ababab')
+                                this.$set(this.style, 'transform', 'rotateX(45deg)')
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+        14.7.3 组件的注册
+            components 选项 用于为组件注册从外部引入的组件，由于子组件并非在全局定义，因此不可以直接在父组件的作用域内使用。
+            选项常见的应用场景有引入第三方库中的组件和自定义组件等
+            代码如下：
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>过滤器-封装复用</title>
+                </head>
+                <body>
+                <div id="app">
+                    <easy-title></easy-title>
+                    <easy-wish></easy-wish>
+                    <easy-motto></easy-motto>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let EasyTitle = {
+                        name: 'EasyTitle',
+                        template: '<h1>大器晚成</h1>'
+                    }
+
+                    let EasyWish = {
+                        name: 'EasyWish',
+                        template: '<p>白发渔樵隐身山，浮名穷利岂愿沾。</p>'
+                    }
+
+                    let EasyMotto = {
+                        name: 'EasyMotto',
+                        template: '<p>过一方水土，历一番人事，方知天地不仁，万物刍狗。</p>'
+                    }
+
+
+                    let vm = new Vue({
+                        el: '#app',
+                        components: {
+                            EasyTitle, EasyMotto, EasyWish
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+
+
+        14.7.4 混入的使用
+            与 components选项相似，mixins（混入）选项也用于注册在外部封装好的代码，不过这些代码更加碎片化，并不如组件一样成体系，混入的目的在于灵活地分发组件中一些可复用的功能。
+            mixins可以将一些封装好的选项混入另一个组件中。在混入过程中，如果没有发生冲突，则执行合并，如果发生冲突且用户没有指定解决策略，vue将采用默认策略
+
+            混入冲突时的默认策略
+            冲突选项                                合并策略                    冲突策略
+            data                                    合并根节点数据             优先采用组件的数据
+            mounted等钩子函数                        混合为数组                 全部调用且先调用mixin的钩子函数
+            methods/components/directives等         混为同一个对象              优先采用组件的键值对
+            watch                                   混合为数组                 全部调用且先调用mixin的watch 方法
+
+            代码如下：
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>混入-封装复用</title>
+                    <style>
+                        #app {
+                            color: #2c3e50;
+                            font-family: Roboto, sans-serif;
+                        }
+
+                        .label {
+                            display: inline-block;
+                            min-width: 160px;
+                        }
+                    </style>
+                </head>
+                <body>
+                <div id="app">
+                    <h1>{{ title }}</h1>
+                    <p><strong class="label">Text:</strong>{{ text }}</p>
+                    <p><strong class="label">Plus Text:</strong>{{ plusText }}</p>
+                    <p><strong class="label">Upper Text::</strong>{{ text | supplyUpper }}</p>
+                    <button @click="toggleText">切换文本</button>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    // 强耦合，需要被混入组件的data根节点中包含text属性
+                    let mixin = {
+                        data() {
+                            return {
+                                title: 'Test for mixin'
+                            }
+                        },
+
+                        mounted() {
+                            console.log('mixin mounted')
+                        },
+
+                        methods: {
+                            toggleText() {
+                                console.log("============" + this.text);
+                                // this 指向 vue 实例
+                                this.text = 'mixin Text'
+                            }
+                        },
+                        computed: {
+                            plusText() {
+                                // 此处需要创建函数作用域以使this指向vue实例
+                                return '+ ' + this.text + ' +'
+                            }
+                        },
+
+                        filters: {
+                            // 选项过滤器
+                            supplyUpper: value => value.toUpperCase()
+                        },
+
+                        watch: {
+                            // 监听器
+                            text(value) {
+                                console.log('mixin text :' + value)
+                            }
+                        }
+                    }
+                    let vm = new Vue({
+                        el: '#app',
+                        mixins: [mixin],
+                        data() {
+                            return {
+                                title: 'A Title',
+                                text: 'which one?'
+                            }
+                        },
+                        mounted() {
+                            console.log('instance mounted')
+                        },
+                        methods: {
+                            toggleText() {
+                                this.text = 'instance text'
+                            }
+                        },
+                        watch: {
+                            text(value) {
+                                console.log('instance text :' + value)
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+            Vue 也允许开发者使用 Vue.mixin 定义全局 mixin，不过这将为所有组件和示例混入 mixin选项
+                // 为自定义的选项 'myOption' 注入一个处理器。
+                Vue.mixin({
+                  created: function () {
+                    var myOption = this.$options.myOption
+                    if (myOption) {
+                      console.log(myOption)
+                    }
+                  }
+                })
+
+                new Vue({
+                  myOption: 'hello!'
+                })
+
+15. Vue内置组件
+    15.1 组件服务
+        15.1.1 动态组件
+            动态切换页面部分区域的视图，使用内置组件 component
+
+            component 接收一个名为 is 的属性，is 的值应为在父组件中注册过的组件名称，代码如下：
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>动态组件-内置组件</title>
+                    <style>
+                        .tabs {
+                            margin: 0;
+                            padding: 0;
+                            list-style: none;
+                        }
+
+                        .per-tab {
+                            display: inline-block;
+                            width: 120px;
+                            line-height: 32px;
+                            border-left: 1px solid #ccc;
+                            border-top: 1px solid #ccc;
+                        }
+
+                        .per-tab:last-child {
+                            border-right: 1px solid #ccc;
+                        }
+
+                        .tab-content {
+                            height: 240px;
+                            border: 1px solid #ccc;
+                        }
+
+                    </style>
+                </head>
+                <body>
+                <div id="app">
+                    <ul class="tabs">
+                        <li class="per-tab" @click="toggleView('Home')">Home</li>
+                        <li class="per-tab" @click="toggleView('About')">About</li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <component :is="view"></component>
+                    </div>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let Home = {
+                        // Home 组件
+                        template: '<p style="color:#787878;">Hello Home!</p>'
+                    }
+
+                    let About = {
+                        // About 组件
+                        template: '<p>Hello About!</p>'
+                    }
+
+                    let vm = new Vue({
+                        el: '#app',
+                        components: {Home, About},
+                        data() {
+                            return {
+                                view: 'Home'
+                            }
+                        },
+                        methods: {
+                            toggleView(view) {
+                                this.view = view
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+        15.1.2 使用插槽分发内容
+            通过 props 选项，组件可以接收多态的数据。
+            希望组件接收多态的DOM结构，实现的方法有很多，比如 使用 props 配合 v-html 等。
+            不过 使用内置组件slot（插槽）分发内容，更加简单。
+            在定义多个插槽时，可以使用name属性对其进行区分，如果没有指定 name 属性，则 Vue 会将所有的插槽内容置于默认插槽 default 中
+            示例代码如下：
+                <!DOCTYPE html>
+                <html lang="en" xmlns="http://www.w3.org/1999/html">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>动态组件-内置组件</title>
+
+                </head>
+                <body>
+                <div id="app">
+                    <slot-test>
+                        <p>使用插槽分发内容</p>
+                        <h1 slot="header">插槽测试！</h1>
+                        <p>在组件中，没有指定插槽名称的元素将被置于默认插槽中</p>
+                        <p slot="none">指定到不存在的插槽中的内容将不会被显示</p>
+                    </slot-test>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let slotTest = {
+                        template: '<div>' +
+                            '<slot name="header">相当与占位元素，因此这些文件也不会被渲染</slot>' +
+                            '<slot></slot>' + // 默认插槽
+                            '</div>'
+                    }
+
+                    let vm = new Vue({
+                        el: '#app',
+                        components: {slotTest}
+                    })
+                </script>
+                </body>
+                </html>
+
+
+            Vue 还提供了作用域插槽 slot-scope (在Vue 2.5.0 以下版本为 scope ，只可用于 template 元素)，
+            我们可以使用 slot-scope 获取子组件回传的数据，用来在父组件中执行多态的渲染或响应。
+
+            为了使父组件中的 slot-scope 生效，我们还需要在子组件中将有关的数据绑定到插槽中。
+            示例代码如下：
+                <!DOCTYPE html>
+                <html lang="en" xmlns="http://www.w3.org/1999/html">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>动态组件-内置组件</title>
+                    <style>
+                        .btn {
+                            outline: none;
+                            border: none;
+                            cursor: pointer;
+                            padding: 5px 12px;
+                        }
+
+                        .btn-text {
+                            color: #409eff;
+                            background-color: transparent;
+                        }
+
+                        .btn-text:hover {
+                            color: #66b1ff;
+                        }
+
+                        .fly-table {
+                            width: 400px;
+                            text-align: left;
+                            line-height: 42px;
+                            border: 1px solid #eee;
+                            user-select: none;
+                        }
+                    </style>
+                </head>
+                <body>
+                <div id="app">
+                    <h2>Fly Table Component</h2>
+                    <button class="btn btn-text"
+                            title="点击使数组倒序"
+                            @click="handleReverse">
+                        倒序
+                    </button>
+
+                    <fly-table
+                            :fields="fields"
+                            :goods="goods">
+
+                        <!-- 租价标签包裹着的内容将被分发 -->
+                        <!-- 思考下：是否可以在fly-table组件中直接书写这段代码？ -->
+                        <template slot-scope="{row , col}">
+                            <span v-if="col.prop !== 'operate'">
+                                {{ row[col.prop] }}
+                            </span>
+                            <button class="btn btn-text" v-else @click="handleMarked(row)">
+                                切换标记
+                            </button>
+                        </template>
+                    </fly-table>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let flyTable = {
+                        props: {
+                            fields: {
+                                type: Array,
+                                default() {
+                                    return []
+                                }
+                            },
+
+                            goods: {
+                                type: Array,
+                                default() {
+                                    return []
+                                }
+                            }
+                        },
+                        template: function () {
+                            return '<table class="fly-table">\n' +
+                                '<tr>\n' +
+                                '   <th \n' +
+                                'v-for="(col,cIndex) in fields"' +
+                                ':key="cIndex">\n' +
+                                '{{col.label}}' +
+                                '</th>' +
+                                '</tr>' +
+                                '<tr \n' +
+                                'v-for="(row,rIndex) in goods"\n' +
+                                ':key="rIndex"\n' +
+                                ':style="{color:row.isMarked ? \'#ea4335\' : \'\'}">\n' +
+                                '<td \n' +
+                                'style="border-top: 1px solid #eee"\n' +
+                                'v-for="(col,cIndex) in fields"\n' +
+                                ':key="cIndex">\n' +
+                                // slot 应写在子组件中，用于接收父组件分发的内容
+                                '<slot :row="row" :col="col"></slot>\n' +
+                                '</td>' +
+                                '</tr>' +
+                                '</table>'
+                        }()
+                    }
+
+                    let vm = new Vue({
+                        el: '#app',
+                        components: {flyTable},
+                        data() {
+                            return {
+                                fields: [
+                                    {label: '名称', prop: 'name'},
+                                    {label: '数量', prop: 'quantity'},
+                                    {label: '价格', prop: 'price'},
+                                    {label: '操作', prop: 'operate'}
+                                ],
+                                goods: [
+                                    {name: '苹果', quantity: 200, price: 6.8, isMarked: false},
+                                    {name: '榴莲', quantity: 50, price: 4.8, isMarked: false},
+                                    {name: '西瓜', quantity: 0, price: 22.8, isMarked: false},
+                                ]
+                            }
+                        },
+                        methods: {
+                            handleReverse() {
+                                this.goods.reverse();
+                            },
+                            handleMarked(row) {
+                                row.isMarked = !row.isMarked;
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+        15.1.3 组件的缓存
+            keep-alive 是一个抽象组件，即它不渲染任何DOM元素，也不会出现在组件结构树中。可以使用它缓存一些非动态的组件实例（没有或不需要数据变化）,
+            以保留组件状态或减少重新渲染的开销
+
+            keep-alive 应出现在组件被移除之后需要再次挂载的地方，比如使用动态组件时：
+                <keep-alive>
+                    <component :is="view"></component>
+                </keep-alive>
+
+                或
+
+                <keep-alive>
+                    <one v-if="isOne"></one>
+                    <two v-else></two>
+                </keep-alive>
+            它还可以接收 include 和 exclude 两个 props 属性：
+                include 字符串或正则表达式。只有匹配的组件会被缓存。
+                exclude 字符串或正则表达式。任何被匹配的组件将不会被缓存。
+            当组件在 keep-alive 内被切换时，它的activated 和 deactivated 这两个生命周期钩子函数将会被执行。
+
+    15.2 过渡效果
