@@ -2500,3 +2500,738 @@
             当组件在 keep-alive 内被切换时，它的activated 和 deactivated 这两个生命周期钩子函数将会被执行。
 
     15.2 过渡效果
+        15.2.1 单节点的过渡
+            Vue 提供了标签为 transition 的内置组件，在下列情形中，我们可以给任何元素和组件添加进入 / 离开时的过渡动画：
+                1. 元素或组件初始渲染时
+                2. 元素或组件显示 / 隐藏时 （使用 v-if 或 v-show 进行条件渲染时）
+                3. 元素或组件切换时
+            Vue 允许用户使用 CSS 和 JS 两种方式来定义过渡效果。
+            在使用 CSS 过渡时，我们需要预置符合 Vue 规则的带样式的类名，这些类名用于定义过渡不同阶段时的样式：
+                v-enter : 定义进入过渡的开始状态。在元素被插入前生效，被插入后的下一桢移除。
+                v-enter-active : 定义进入过渡生效时的状态。在整个进入过渡阶段中应用，在元素被插入之前生效，在过渡/ 动画完成之后移除。这个类可以用来定义进入过渡的过程时间，延迟和曲线函数等。
+                v-enter-to : 定义进入过渡结束时的状态，在元素被插入后的下一桢生效（此时 v-enter被移除），在过渡/ 动画完成之后移除。
+                v-leave ：定义离开过渡的开始状态。在离开过渡被触发时立刻生效，下一帧被移除
+                v-leave-active ：定义离开过渡生效的状态。在整个离开过渡的阶段中应用，在离开过渡被触发时立刻生效，在过渡 / 动画完成之后移除。这个类可以被定义离开过渡的过程时间、延迟和曲线函数。
+                v-leave-to ：定义离开过渡的结束状态。在离开过渡被触发之后下一桢生效（此时v-leave被移除），在过渡/动画完成之后移除。
+
+            在实例中存在多个不同的动画效果时，我们可以使用自定义前缀替换 v-，比如使用 slide-enter 替换 v-enter， 不过这需要赋予 transition 元素的 name 属性。
+
+            示例代码如下：
+                <!DOCTYPE html>
+                <html lang="en" xmlns="http://www.w3.org/1999/html">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>动态组件-内置组件</title>
+                    <style>
+                        /* 在此处声明过渡样式类，从一个状态过渡到另一个状态 */
+                        .v-enter, .v-leave-to {
+                            opacity: 0;
+                        }
+
+                        .v-enter-active, .v-leave-active {
+                            transition-property: opacity; /* 过渡属性 */
+                            transition-delay: 100ms; /* 延迟 */
+                            transition-duration: 900ms; /* 过渡时长 */
+                            transition-timing-function: linear; /* 贝赛尔曲线 （动画速度曲线）*/
+                        }
+
+                        .rotate-enter,
+                        .rotate-leave-to {
+                            transform: rotateY(90deg);
+                        }
+
+                        .rotate-enter-active,
+                        .rotate-leave-active {
+                            transform-origin: left;
+                            transition: transform 1s linear;
+                        }
+                    </style>
+                </head>
+                <body>
+                <div id="app">
+                    <button @click="isHidden = !isHidden">{{ isHidden ? '显示' : '隐藏'}}</button>
+                    <!-- 默认前缀的过渡 -->
+                    <transition>
+                        <p v-if="!isHidden">使用默认前缀的过渡</p>
+                    </transition>
+                    <!-- 自定义前缀的过渡， transtionName 为变量-->
+                    <transition :name="transitionName">
+                        <p v-if="!isHidden">使用 rotate 前缀的过渡</p>
+                    </transition>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let vm = new Vue({
+                        el: '#app',
+                        data() {
+                            return {
+                                isHidden : true,
+                                transitionName : 'rotate'
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+            除了transition 之外，我们还可以使用CSS中的animation ，或者直接使用 第三方动画库 （如 Animate.css） 来实现过渡动画。
+            由于这些动画库有着不同的类名规则，无法与Vue默认的类名规则配合使用，因此vue为其提供了兼容方案，允许用户自定义过的类名，
+            这些类名的优先级将高于默认的类名
+            我们可以使用以下特性来自定义过渡类名：
+                enter-class
+                enter-active-class
+                enter-to-class
+                leave-class
+                leave-active-class
+                leave-to-class
+
+            示例代码：
+                <!DOCTYPE html>
+                <html lang="en" xmlns="http://www.w3.org/1999/html">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>动态组件-内置组件</title>
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css"/>
+                    <style>
+                        .inline-block {
+                            display: inline-block;
+                        }
+
+                        .rotate-enter-active {
+                            animation: selfRotateIn 1s;
+                        }
+
+                        .rotate-leave-active {
+                            animation: selfRotateOut 1s;
+                        }
+
+                        @keyframes selfRotateIn {
+                            0% {
+                                opacity: 0;
+                                transform: rotateZ(-180deg);
+                            }
+                            100% {
+                                opacity: 1;
+                                transform: rotateZ(0deg);
+                            }
+                        }
+
+                        @keyframes selfRotateOut {
+                            0% {
+                                opacity: 1;
+                                transform: rotateZ(0deg);
+                            }
+                            100% {
+                                opacity: 0;
+                                transform: rotateZ(-180deg);
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                <div id="app">
+                    <button @click="isHidden = !isHidden">{{ isHidden ? '显示' : '隐藏' }}</button>
+                    <!-- 默认前缀的过渡 -->
+                    <transition name="rotate">
+                        <span class="inline-block" v-if="!isHidden">自定义的动画</span>
+                    </transition>
+
+                    <transition name="custom"
+                        enter-active-class="animated rotateIn"
+                        leave-active-class="animated rotateOut">
+                        <span class="inline-block" v-if="!isHidden">使用 Animate.css 动画</span>
+                    </transition>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let vm = new Vue({
+                        el: '#app',
+                        data() {
+                            return {
+                                isHidden: true
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+            Animate.css 高版本 的动画库 有些类名规则做了修改.
+
+
+            在开发中，使用进入过渡便可实现初始渲染时的过渡效果。除此之外，Vue提供了专门的初始渲染过渡，这需要在transition 元素上添加的 appear 属性，不过 appear 过渡只支持
+            自定义类名的过渡和JS过渡，用法如下：
+                <transition
+                    appear
+                    appear-class="custom-appear-class"
+                    appear-to-class="custom-appear-to-class"
+                    appear-active-class="custom-appear-active-class"
+                >
+                    <!-- ... -->
+                </transition>
+
+            Vue为了高效地更新元素，会采用 “就近复用” 的策略。因此当我们需要隐藏 / 显示 多个相邻的相同标签的元素时，
+            并不一定所有的元素都会执行过渡，因为部分元素可能被复用了（被复用的元素不会进入 / 离开）。
+            为了解决这个问题，我们需要赋予元素唯一key值，让vue对元素进行跟踪。
+
+            反之，当元素的key值发生变化时，vue不会复用原有的元素，而将重建新的元素。根据这一特点，我们可以通过改变元素的key值来触发过渡动画，
+            这常被用在元素切换时，示例代码如下：
+                <!DOCTYPE html>
+                <html lang="en" xmlns="http://www.w3.org/1999/html">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>动态组件-内置组件</title>
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css"/>
+                    <style>
+                        .v-enter,.v-leave-to {
+                            opacity: 0;
+                        }
+                        .v-enter-active,.v-leave-active {
+                            transition: opacity 1s;
+                        }
+                    </style>
+                </head>
+                <body>
+                <div id="app">
+                    <button @click="isMaster = !isMaster">切换身份</button>
+                    <!-- 默认前缀的过渡 -->
+                    <transition>
+
+                        <p :key="isMaster ? 'master' : 'other'">{{isMaster ? '大家好！': '东家好！'}}</p>
+                    </transition>
+
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let vm = new Vue({
+                        el: '#app',
+                        data() {
+                            return {
+                                isMaster: true
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+            代码中明明只有一个 p 标签，可为什么页面上会有渐出和渐入的两个元素？
+            由于在元素切换时，旧的元素要被隐藏，新的元素（key值改变，该元素是新建的）要被显示，两者过渡都需要一定的时间内，且vue默认进入和离开同时发生，
+            因此会出现两个元素同时存在的问题。
+            为了解决这个问题，vue提供了过渡模式：
+                1. in-out : 新元素先出现，之后旧元素隐藏
+                2. out-in : 旧元素先隐藏，之后新元素出现
+
+            用法如下：
+                <transition mode="out-in">
+                    <!-- 元素 -->
+                </transition>
+
+
+
+            示例代码如下：
+                <!DOCTYPE html>
+                <html lang="en" xmlns="http://www.w3.org/1999/html">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>动态组件-内置组件</title>
+
+                </head>
+                <body>
+                <div id="app">
+                    <button @click="isHidden = !isHidden">{{ isHidden ? '显示' : '隐藏' }}</button>
+                    <!-- 默认前缀的过渡 -->
+                    <transition
+                            :before-enter="handleBeforeEnter"
+                            :enter="handleEnter"
+                            :after-enter="handleAfterEnter"
+                            :enter-cancelled="handleEnterCancelled"
+                            :before-leave="handleBeforeLeave"
+                            :leave="handleLeave"
+                            :after-leave="handleAfterLeave"
+                            :leave-cancelled="handleLeaveCancelled"
+                    >
+
+
+
+                        <p :key="isMaster ? 'master' : 'other'">{{isMaster ? '大家好！': '东家好！'}}</p>
+                    </transition>
+
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let vm = new Vue({
+                        el: '#app',
+                        data() {
+                            return {
+                                isHidden: true
+                            }
+                        },
+                        methods : {
+                            // vue 提供了以下钩子函数，这些钩子函数也可以结合CSS过渡和动画使用
+                            handleBeforeEnter(el) {},
+                            handleEnter(el,done) {
+                                // 当只用JS过渡时，在enter和leave总必须使用done可以回调
+
+                                // 否则他们将被同步调用，过渡会立即完成
+                                done()
+                            },
+                            handleAfterEnter(el) {},
+                            handleEnterCancelled(el) {},
+                            handleBeforeLeave(el) {},
+                            handleLeave(el,done) {},
+                            handleAfterLeave(el) {},
+                            handleLeaveCancelled(el) {},
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+        15.2.2 多节点的过渡
+            使用 v-for列表渲染的元素，使用 transition 组件实现过渡动画并不可用，vue提供了transition-group组件用以实现列表过渡，
+            不同于transition的是：
+                transition-group : 将以真实元素呈现，默认为span ，也可以通过tag属性更换为其他元素。
+                过渡模式不可用
+                内部元素必须提供唯一的key属性（就近复用会导致部分过渡失败）
+
+            就地复用：如果数据项的顺序被改变，Vue 将不会移动 DOM 元素来匹配数据项的顺序， 而是简单复用此处每个元素。
+                "就地复用"的模式是高效的，但是只适用于不依赖子组件状态或临时 DOM 状态 (例如：表单输入值) 的列表渲染输出。
+
+            示例代码如下：
+                <!DOCTYPE html>
+                <html lang="en" xmlns="http://www.w3.org/1999/html">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>多节点的过渡-内置组件</title>
+                    <style>
+                        .list-enter,.list-leave-to {
+                            opacity: 0;
+                            transform: translateY(30px);
+                        }
+
+                        .list-enter-active ,
+                        .list-leave-active {
+                            transition: all 1s linear;
+                        }
+                    </style>
+                </head>
+                <body>
+                <div id="app">
+                    <button @click="addNewItem()">添加元素</button>
+                    <!-- 默认前缀的过渡 -->
+                    <br >
+                    <transition-group name="list" tag="ul">
+                        <li
+                            v-for="item in list" :key="item">
+                            {{item}}
+                        </li>
+                    </transition-group>
+
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let vm = new Vue({
+                        el: '#app',
+                        data() {
+                            return {
+                                list : [0,1,2,3,4,5,6,7,8,9]
+                            }
+                        },
+                        methods : {
+                            addNewItem () {
+                                this.list.push(this.list.length);
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+            除了用以实现进出动画之外，transition-group 还可以用于改变元素定位的动画，这需要用到 v-move 特性。
+            v-mode 动画效果的定义方式与 v-enter、v-leave 等一致，它可以帮助我们平滑地移动列表元素的位置。我们体会以下，示例代码以下：
+                <!DOCTYPE html>
+                <html lang="en" xmlns="http://www.w3.org/1999/html">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>多节点的过渡-内置组件</title>
+                    <style>
+                        .list-move {
+                            transition: transform 1s;
+                        }
+                    </style>
+                </head>
+                <body>
+                <div id="app">
+                    <button @click="orderByRandom()">随机顺序</button>
+                    <!-- 默认前缀的过渡 -->
+                    <br>
+                    <transition-group name="list" tag="ul">
+                        <li
+                                v-for="item in list" :key="item">
+                            {{ item }}
+                        </li>
+                    </transition-group>
+
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let vm = new Vue({
+                        el: '#app',
+                        data() {
+                            return {
+                                list: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+                            }
+                        },
+                        methods: {
+                            orderByRandom() {
+                                let tmp = []; // 初始化新数组
+                                for (let i = 0; i < this.list.length; i++) {
+                                    let num = Math.floor(Math.random() * (this.list.length - 0.001))
+
+                                    let index = tmp.indexOf(num);
+
+                                    while (index !== -1) {
+                                        num = Math.floor(Math.random() * (this.list.length - 0.001));
+                                        index = tmp.indexOf(num);
+                                    }
+                                    tmp.push(num);
+                                }
+
+                                this.list = tmp;
+                            }
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+16. Vue 项目化
+    16.1 快速构建项目
+        1. 打开控制台 输入：
+            cnpm install vue-cli -g
+            安装脚手架工具 Vue CLI，尚未安装 cnpm 可以输入：
+            npm install cnpm -g --registry=https://registry.npm.taobao.org
+            用来安装国内淘宝镜像源的cnpm
+            在命令执行结束后，输入：
+            vue --version
+
+        2. 第一步只需在安装 环境时，安装一次就可，无需重复安装。
+            在项目所奥放置的文件夹目录下打开控制台，输入：
+            vue init webpack sprog
+            此为初始化项目
+            注：sprog 为项目名称
+
+        3. 在模板下载完成后，Vue CLI 将引导我们精选项目配置，
+            3.1 首先 会提示输入 项目名称：
+                Project name sprog
+            3.2 第二，会提示输入 项目描述，回车即可：
+                Project description (A Vue.js project)
+            3.3 第三，提示输入 作者：
+                Author xxx
+            3.4 其次，点回车，若出现命令不动的情况，再次点回车
+                若出现 Install vue-router? ，表示 询问是否安装 vue 路由，可选择是/否。若选择否，安装路由时，就需要手动安装。这里选择是。
+                Install vue-router? y
+            3.5 第五，会提示 是否使用ESLint 检查代码 ，可选择是/否。若选择否，安装路由时，就需要手动安装。这里选择是。
+                Use ESLint to lint your code? y
+
+            3.6 若选择了第五，会提示 如下：
+                > Standard (https://github.com/standard/standard)
+                  Airbnb (https://github.com/airbnb/javascript)
+                  none (configure it yourself)
+                默认直接回车即可，当然也可 上下移动光标，回车，因为这里有三个选项
+
+            3.7. 第七，会提示 是否安装单元测试工具，按个人意愿即可：
+                Set up unit tests (Y/n) n
+
+            3.8. 第八，会提示 是否安装  e2e tests with Nightwatch? ，按个人意愿即可：
+                Setup e2e tests with Nightwatch? n
+
+            3.9. 第九，会提示 安装项目的工具：
+                > Yes, use NPM
+                  Yes, use Yarn
+                  No, I will handle that myself
+
+                上下移动光标，回车即可
+
+                这里选择第一个。
+
+            3.10. 之后等待其创建项目即可。安装成功会有以下提示：
+                # Project initialization finished!
+                # ========================
+
+                To get started:
+
+                  cd sprog
+                  npm run dev
+
+            3.11 安装依赖：
+                cnpm install
+
+            3.12 构建项目的开发版本，输入
+                npm start
+
+            3.13 打开另一个控制台，输入
+                npm run build
+                构建项目的生产版本
+
+
+    16.2 项目的目录介绍
+
+        名称                      说明
+        build                    开发和生产版本的构建脚本
+        config                   开发和生产版本的部分构建配置
+        dist                     由npm run build生成，项目的生产版本；项目完成后，交付该文件即可
+        src                      项目开发的关键资源目录和主要工作空间
+            assets              文件夹用于存放图片、音频、视频等资源
+            components          用于存放我们开发的单文件组件
+            router/index.js     用于配置项目的前端路由（用到了Vue）
+            App.vue             vue cli为我们默认创建的项目的跟组件
+            main.js             是webpack的入口文件
+        static                  静态资源 （如使用JS赋值图片src时，该图片资源应放在static下）
+        .babelrc                babel的配置文件(babel，下一代JS的预编译器)
+        .eslintignore           ESLint代码语法检测的配置文件（应忽略的语法格式）
+        .eslintrc.js            ESLint代码语法检测的配置文件（应规范的语法格式）
+        .gitigonre              应被git版本控制工具忽略的文件
+        .index.html             应被webpack注入资源的模板html文件
+
+
+
+        接下来，看些文件代码：
+            App.vue
+            <template>
+              <div id="app">
+                <img src="./assets/logo.png">
+                <router-view/>
+              </div>
+            </template>
+
+            <script>
+            export default {
+              name: 'App'
+            }
+            </script>
+
+            <style>
+            #app {
+              font-family: 'Avenir', Helvetica, Arial, sans-serif;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              text-align: center;
+              color: #2c3e50;
+              margin-top: 60px;
+            }
+            </style>
+
+        1. 这是一个单文件组件，包含 HTML JS和CSS三个部分。显然，VUe CLI采用关注点分离的开发方式，这种开发方式是的组件的内聚性很强，也更适合于组件化的开发
+        2. script标签中的内容为 vue 组件，template 标签中的内容为组件的DOM结构；style标签中的内容为CSS样式 （在被赋予scoped属性后，样式表的作用域进行在当前的组件中）
+        3. export 和 import 是 ECMAScript 6 语法中用于模块话管理的两个关键字，这里使用 export 导出 vue组件以供外部调用.
+
+            main.js
+            // The Vue build version to load with the `import` command
+            // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+            import Vue from 'vue'
+            import App from './App'
+            import router from './router'
+
+            Vue.config.productionTip = false
+
+            /* eslint-disable no-new */
+            new Vue({
+              el: '#app',
+              router,
+              components: { App },
+              template: '<App/>'
+            })
+        1. 这里使用 import 导入全局的vue对象、App组件、Vue Router 的配置。之后，创建了一个Vue实例，并将App组件和router注册到实例中
+        2. 注册 /* eslint-disable no-new */ 用于告诉eslint忽略此处对new关键字的检测
+
+        在 main.js 中，实例的el选项绑定了 id 为 app 的 DOM元素。会是App组件中的div元素吗？显然，不可能的
+        由于App组件是被注册在实例中的（作为实力的子组件），那么 App组件中的元素当然不肯作为实例的挂载元素，那么，实例最终是被挂载在index.html 中的div 元素上吗？
+        答案其实也不全是，
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width,initial-scale=1.0">
+                <title>sprog</title>
+              </head>
+              <body>
+                <div id="app"></div>
+                <!-- built files will be auto injected -->
+              </body>
+            </html>
+
+        Vue CLI会将所有编译整理好的资源路径注入到以 index.html 为模板的镜像中，被注入后的镜像即生产版本中的项目的入口文件，也就是dist文件目录下的index.html
+        这里的元素才是实例最终挂载的地方。
+
+    16.3 前端路由
+        16.3.1 前端路由的简单实现
+            广义上的前端路由是指前端根据URL来分发视图，现有两个核心操作：
+                1. 需要监听浏览器地址的变化
+                2. 需要动态加载视图
+
+            这里分别使用 Vue 和原生的JS来模拟实现，并用Node.js 创建服务端文件，服务端文件app.js代码如下：
+                const http = require('http') // http 模块
+                const fs = require('fs') // 文件处理模块
+                const hostName = '127.0.0.1'
+                const post = 3000
+                const server = http.createServer(function (req,res) { // 创建 http 服务
+                  let content = fs.readFileSync('index.html') // 读取文件
+                  res.writeHead(200,{
+                    // 设置响应内容类型
+                    'content-type': 'text/html;charset="utf-8"'
+                  })
+
+                  res.write(content) // 返回index.html文件内容
+                  res.end()
+
+                })
+
+                server.listen(post,hostName,function () { // 启动服务监听
+                  console.log(`Server is running here : http://${hostName}:${post}`)
+                })
+
+            下面来看一下使用Vue实现前端路由的代码（index.html）
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Title</title>
+                </head>
+                <body>
+                <div id="app">
+                    <ul>
+                        <li>
+                            <router-link to="/">Home</router-link>
+                        </li>
+                        <li>
+                            <router-link to="/about">About</router-link>
+                        </li>
+                    </ul>
+                    <router-view></router-view>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+                <script>
+                    let Home = {
+                        template: '<h1>This is Home!</h1>'
+                    }
+
+                    let About = {
+                        template: '<h1>This is About!</h1>'
+                    }
+
+                    let routes = [
+                        // 定义路由规则
+                        {path: '/', component: Home},
+                        {path: '/about', component: About}
+                    ]
+
+                    let RouterLink = {
+                        props: ['to'],
+                        template:'<a :href="to"><slot name="default"></slot></a>'
+                    }
+
+
+                    let RouterView = {
+                        data() {
+                            return {
+                                url : window.location.pathname  // 获取浏览器地址
+                            }
+                        },
+                        computed: {
+                            ViewComponent() {
+                                return routes.find(route => route.path === this.url).component
+                            }
+                        },
+                        render(h) {
+                            return h(this.ViewComponent)
+                        }
+                    }
+
+                    /* eslint-disable */
+                    let vm = new Vue({
+                        el:'#app',
+                        components: {
+                            RouterLink,
+                            RouterView
+                        }
+                    })
+                </script>
+                </body>
+                </html>
+
+            使用原生JS实现前端路由的代码如下：index.html
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Title</title>
+                </head>
+                <body>
+                <div id="app">
+                    <ul>
+                        <li>
+                            <a href="#/">Home</a>
+
+                        </li>
+                        <li>
+                            <a href="#/about">About</a>
+                        </li>
+                    </ul>
+                    <div id="view"></div>
+                </div>
+                <script>
+                    let Home = '<h1>This is Home!</h1>';
+
+                    let About = '<h1>This is About!</h1>';
+
+                    let Router = function (el) { // 定义路由类
+                        let view = document.getElementById(el);
+                        let routes = [] // 路由规则列表
+                        let load = function (route) { // 加载视图
+                            route && (view.innerHTML = route.template)
+                        }
+
+                        let redirect = function () {
+                            // 分发视图
+                            let url = window.location.hash.slice(1) || '/'
+                            for(let route of routes) {
+                                url === route.url && load(route)
+                            }
+                        }
+
+                        this.push = function (route) {
+                            // 添加路由规则
+                            routes.push(route)
+                        }
+
+                        window.addEventListener('load',redirect,false); // 页面加载时
+                        window.addEventListener('hashchange',redirect,false); // url 变化时
+                    }
+
+                    let router = new Router('view'); // 实例化路由
+                    router.push({
+                        url : '/',
+                        template : Home
+                    })
+
+                    router.push({
+                        url : '/about',
+                        template : About
+                    })
+                </script>
+                </body>
+                </html>
+
+        16.3.2 Vue中的前端路由
+
+
+
+
