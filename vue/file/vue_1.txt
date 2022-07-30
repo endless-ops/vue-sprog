@@ -3231,6 +3231,561 @@
                 </html>
 
         16.3.2 Vue中的前端路由
+            Vue Router 是 Vue.js 官方提供的路由管理器，它与vue.js 的核心深度集成，且随着Vue.js版本的更新而更新，致力于简化单页面应用构建
+
+            1. 基础路由
+                示例代码如下：
+                    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+                    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+                    <div id="app">
+                        <ul>
+                            <li><router-link to="/">Home</router-link></li>
+                            <li><router-link to="/about">About</router-link></li>
+                        </ul>
+                    </div>
+                    <router-view></router-view>
+                    <script>
+                        let Home = {template:'<h1>This is Home!</h1>'}
+                        let About = {template:'<h1>This is About!</h1>'}
+                        let routes = [
+                            {path:'/',component:Home}
+                            {path:'/about',component:About}
+                        ]
+
+                        let router = new VueRouter({
+                            routers
+                        })
+
+                        let app = new Vue({
+                            router
+                        }).mount('#app')
+                    </script>
+
+                RouterLink 和 RouterView 是 Vue Router提供的两个内置组件。RouterLink 默认会被渲染成为一个<a>标签，它的to属性
+                属于指定跳转链接；RouterView将负责挂载路由匹配到的视图组件
+
+            2. 动态路由
+                示例代码如下：
+                     <script src="https://unpkg.com/vue/dist/vue.js"></script>
+                     <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+                     <div id="app">
+                        <ul>
+                            <li><router-link to="/">Home</router-link></li>
+                            <li @click="add"><router-link to="/about">About</router-link></li>
+                        </ul>
+                        <router-view></router-view>
+                     </div>
+                     <script>
+                        let Home = {template:'<h1>This is Home!</h1>'}
+                        let About = {
+                            template:'div' +
+                                     '<h1>This is About!</h1>' +
+                                     '<p>num : {{$route.params.num}}</p>' +
+                                     '</div>'
+                        }
+                        let routes = [
+                            {path:'/',component:Home}
+                            {path:'/about/:num',component:About}  // 1. 定义了参数 num  格式如 /:num
+                        ]
+
+                        let router = new VueRouter({
+                            routes
+                        })
+
+                        let app = new Vue({
+                            data() {
+                                return {
+                                    num : 0
+                                }
+                            },
+                            methods:{
+                                add() {
+                                    this.num++
+                                }
+                            },
+                            router
+                        }).mount("#app")
+                     </script>
+
+                可以使用动态路由参数将匹配某种模式的所有路由映射到同一个组件 （RESTful）
+                路径参数应用英文冒号“:”标记，但是在使用时应注意设计的规则是否合理，比如：
+                    routers = [
+                        {path:'/:any',component:Home}   // 可以匹配路径为 /about的路由，"about"将作为any的值
+                    ]
+
+                将会把所有路径都匹配到Home组件中。
+                当动态路径被匹配时，我们可以在组件中使用 this.$route.params 来获取参数的值
+
+            3. 嵌套路由
+                示例代码如下：
+                    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+                    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+                    <div id="app">
+                        <ul>
+                            <li><router-link to="/">Home</router-link></li>
+                            <li>
+                                <div>
+                                    <router-link to="/">Home</router-link>
+                                </div>
+                                <ul>
+                                    <li><router-link to="/about/author">About - Author</router-link></li>
+                                    <li><router-link to="/about/email">About - Email</router-link></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <script>
+                        let Home = {template:'<h1>This is Home!</h1>'}
+                        let About = {
+                            // About 组件
+                            template : '<div>' +
+                                        '<h1>This is About!</h1>' +
+                                        '<router-view></router-view>' +  // 嵌套的动态视图区
+                                        '</div>'
+                        }
+                        let Author = {template: '<p>Author : lonelydwwn</p>'}
+                        let Email = {template: '<p>Email : lonelydwwn@163.com</p>'}
+                        let routes = [
+                            {path:'/',component:Home}
+                            {
+                                path:'/about',
+                                component:About,
+                                children : [
+                                    {path:'author',component:Author}
+                                    {path:'email',component:Email}
+                                ]
+                            }
+                        ],
+                        let router = new VueRouter({
+                            routes
+                        })
+
+                        let app = new Vue({
+                            router
+                        }).mount("#app")
+                    </script>
+
+                嵌套路由可以实现在动态视图中嵌套动态视图
+                多层的动态视图可以使用Vue的内置组件component来实现，不过使用component切换的视图会在页面刷新后回到初始状态。
+                而使用路由哦分发的视图在页面刷新后会保持当前路径对应的视图，并在浏览器的history中留下记录。
+
+
+            4. 编程式路由
+                示例代码如下：
+                    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+                    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+                    <div id="app">
+                        <ul>
+                            // 默认字符串为路径参数
+                            <li @click="redirectByPath('/')"></li>
+                            <li>
+                                <!-- 指定参数为路径 -->
+                                <div @click="redirectByPath('/about')">About</div>
+                                <ul>
+                                    <!-- 嵌套路由 -->
+                                    <li @click="redirectByPath('/about/author')">Author</li>
+                                    <!-- 嵌套路由 ，动态路由，当使用path时，params参数不生效-->
+                                    <li @click="redirectByPath('/about/email',{email:'lonelydawn@163.com'})">About - Email</li>
+                                    <!-- 嵌套路由 ，动态路由，可以直接将参数写入path -->
+                                    <li @click="redirectByPath('/about/email/lonelydawn@163.com')">About - Email</li>
+                                    <!-- 嵌套路由 ，动态路由，使用命名路由跳转视图 -->
+                                    <li @click="redirectByName('Email',{email:'lonelydawn@163.com'})">About - Email</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <router-view></router-view>
+                    </div>
+                    <script>
+                        let Home = {template:'<h1>This is Home!</h1>'}
+                        let About = {
+                            // About 组件
+                            template : '<div>' +
+                                        '<h1>This is About!</h1>' +
+                                        '<router-view></router-view>' +  // 嵌套的动态视图区
+                                        '</div>'
+                        }
+                        let Author = {template: '<p>Author : lonelydwwn</p>'}
+                        let Email = {template: '<p>Email : lonelydwwn@163.com</p>'}
+
+                        let routes = [
+                            {path:'/',component:Home},
+                            {
+                                path: '/about',
+                                component: About,
+                                children:[
+                                    {name:'Author',path:'author',component:Author},
+                                    {name:'Email',path:'email/:email',component:Email}
+                                ]
+                            }
+                        ]
+
+                        let router = new VueRouter({
+                            routes
+                        })
+
+                        let app = new Vue({
+                            methods: {
+                                redirectByPath (path,params) {
+                                    this.$router.push({path,params})
+                                },
+                                redirectByName (name,params) {
+                                    this.$router.push({name,params})
+                                }
+
+                            },
+                            router
+                        }).mount("#app")
+                    </script>
+
+                1. 这里并没有使用RouterLink组件，而是在JS中使用 router.push 方法跳转视图。
+                2. 我们可以通过路由的patch跳转视图，还可以赋予路由name属性，然后通过name跳转视图
+                3. 动态参数应放在params中，当使用path 中，params参数不生效，此时应将参数值直接写进path中
+            5. 使用Vue CLI快速构建的项目中的router/index.js
+                示例代码如下：
+                    import Vue from 'vue'
+                    import Router from 'vue-router'
+                    import HelloWorld from '@/components/HelloWorld'
+
+                    Vue.use(Router)
+
+                    export default new Router({
+                      routes: [
+                        {
+                          path: '/',
+                          name: 'HelloWorld',
+                          component: HelloWorld
+                        }
+                      ]
+                    })
+                1. 这里使用Vue.use 安装 Vue Router插件
+                2. 这里使用export返回路由规则。默认只有当路径 ”/“ 时，渲染 HelloWorld组件。
+
+
+        16.4. 状态管理
+            16.4.1 对象引用
+            16.4.2 状态管理器 Vuex
+                Vuex 用于管理分散在Vue各个组件中的数据
+                每一个Vuex应用的核心都是一个store（仓库），可以理解它是一个”非凡的全局对象“。与普通的全局对象不同的是，基于Vue数据与视图绑定的特点，当
+                store中的状态发生变化时，与之绑定的视图也会被重新渲染。
+                这是一个单向的过程，因为store中的状态不允许被直接修改。改变store中的状态的唯一途径就是显示地提交 （commit） mutation，这可以让我们方便地跟踪每一个状态的变化。
+
+                Vuex中有5个重要的概念：State、Getter、Mutation、Action、Module。
+                State 用于维护所有应用层的状态，并确保应用只有唯一的数据源（SSOT、Single Source of Truth）
+
+                State 的用法如下：
+                    new Vuex.Store({
+                        state: {
+                            count : 1
+                        }
+                    })
+                在组件中，可以直接使用 $store.state.count （前提是 store 已被注册到实例中），也可以先用 mapState辅助函数将其映射下来，代码如下：
+                    import {mapState} from 'vuex'
+                    export default {
+                        computed : {
+                            ...mapState (['count']) // ... 是ES6中的对象展开运算符
+                        }
+                    }
+
+
+                Getter 维护由 State 派生的一些状态，这些状态随着State状态的变化而变化。与计算属性一样，Getter 中的派生状态在计算之后会被缓存起来，
+                当重复调用时，如果被以来的状态没有变化，那么Vuex不会重新计算派生状态的值，而是直接采用缓存值。
+
+                Getter 的用法如下：
+                    new Vuex.Store({
+                        state : {
+                            count : 1
+                        },
+                        getters : {
+                            tenTimesCount (state) {
+                                // Vuex 为其注入state对象
+                                return state.count * 10
+                            }
+                        }
+                    })
+
+                在组件中，我们可以直接使用 $store.getters.tenTimesCount，也可以先用 mapGetters辅助哈数将其映射下来，代码如下：
+                    import { mapGetters } from 'vuex'
+
+                    export default {
+                        computed : {
+                            ...mapGetters(['tenTimesCount'])
+                        }
+                    }
+
+                Mutation 提供修改 State 状态的方法
+                Mutation 的用法如下：
+                    new Vuex.Store({
+                        state : {
+                            count : 0
+                        },
+
+                        mutation : {
+                            addCount(state,num) {
+                                state.count += num || 1
+                            }
+                        }
+                    })
+
+                在组件中，可以直接使用 store.commit 来提交 mutation ，代码如下：
+
+                    methods : {
+                        addCount () {
+                            this.$store.commit('addCount') // store 被注入到Vue实例中后可使用 this.$store
+                        }
+                    }
+
+                也可以先用 mapMutation 辅助函数将其映射下来，代码如下：
+                    import { mapState, mapMutation } from 'vuex'
+
+                    export default {
+                        computed : {
+                            ...mapState(['count']) // ...ES6中的对象展开运算符
+                        },
+
+                        methods : {
+                            ...mapMutations (['addCount']) ,
+                            ...mapMutations ({ // 为mutation 赋别名，注意冲突，此方法不常用
+                                    increaseCount : 'addCount'
+                            })
+                        }
+                    }
+
+                Action 类似 Mutation ，不同在于：
+                    1. Action 不能直接修改状态，只能不通过提交 mutation 来修改
+                    2. Action 可以包含异步操作
+
+                Action 的用法如下：
+                    new Vuex.Store({
+                        state : {
+                            count : 0
+                        },
+
+                        mutations : {
+                            addCount (state,num) {
+                                state.count += num || 1
+                            }
+                        },
+
+                        actions : {
+                            // context 具有 和 store 实例相同的属性和方法
+                            // 可以通过 context 获取 state 和 getters 中的值，或者 提交 mutation 和分发其他的action
+                            addCountAsync (context , num) {
+                                setInterval (function () {
+                                    if (context.state.count < 2000) {
+                                        context.commit('addCount',num || 100)
+                                    }
+                                },  num || 100)
+                            }
+                        }
+                    })
+
+                在组件中，可以直接使用 store.dispatch 来分发action ，代码如下：
+                    methods : {
+                        addCountAsync (num) {
+                            this.$store.dispatch('addCountAsync',num)
+                        }
+                    }
+                或者使用 mapActions 辅助函数先将其映射下来，代码如下：
+                    import { mapState, mapActions } from 'vuex'
+
+                    export default {
+                        computed : {
+                            ...mapState(['count']) // ...ES6中的对象展开运算符
+                        },
+
+                        methods : {
+                            ...mapActions (['addCountAsync']) ,
+                            ...mapActions ({ // 为action 赋别名，注意冲突，此方法不常用
+                                    increaseCountAsync : 'addCountAsync'
+                            })
+                        }
+                    }
+
+                由于使用单一状态树，当项目的状态非常多时，store对象就会变得十分臃肿。因此，Vuex允许我们将store分割成模块，每个模块拥有独立的State、Getter、Mutation 和 Action
+                模块之中还可以嵌套模块，每一级都有着相同的结构。
+                    Module 的用法如下：
+
+                        // 定义模块
+                        const counter = {
+                            namespaced : true , // 定义为独立的命名空间
+                            state : {
+                                count : 0
+                            },
+
+                            getters : {
+                                // 模块中，计算方法还会具有 rootState rootGetters 参数以获取根模块中的数据
+                                tenTimesCount(state,getters,rootState,rootGetters) {
+                                    console.log(state,getters,rootState,rootGetters);
+                                    return state.count * 10
+                                }
+                            },
+
+                            mutations : {
+                                addCount(state,num) {
+                                    state.count += num || 1
+                                }
+                            },
+
+                            actions : {
+                                // context 具有和 store实例相同的属性和方法
+                                // 可以通过context获取state 和 getters中的值，获取提交 mutation ，分发 action
+                                // 在模块中，context 还会具有 rootState 和 rootGetters 属性以获取根模块中的数据
+                                addCountAsync (context,num) {
+                                    setInterval (function () {
+                                        if (context.state.count < 2000) {
+                                            context.commit('addCount',num || 100)
+                                        }
+                                    },  num || 100)
+                                }
+                            }
+                        }
+
+                        // 创建仓库
+                        new Vuex.Store({
+                            modules : {
+                                counter
+                            }
+                        })
+
+                    在组件中，模块的使用方法如下：
+                        import {mapState,mapGetters,mapMutations,mapActions} from 'vuex'
+                        export default {
+                            computed : {
+                                ...mapState ('counter',['count'])
+                                ...mapGetters ('counter',['tenTimesCount'])
+                            },
+                            methods : {
+                                ...mapMutations ('counter',['addCount'])
+                                ...mapAction ('counter',['addCountAsync'])
+                            }
+                        }
+
+                    作为一个状态管理器，首先要拥有保管状态的容器 -- State，为了满足衍生数据和数据链的需求，从而有了Getter；为了可以”显式地“修改状态，所以需要Mutation
+                    为可以可以”异步地“修改状态 （满足 Ajax 等异步数据交互），所以 需要Action；最后，如应用有成百上千个状态，放在一起会显得十分庞杂，所以分模块管理（Module）
+
+        16.5 在项目中使用 Vuex
+            在构建好的项目中，在命令行中输入：
+                 npm/cnpm install vuex --save-dev
+
+            在src目录下创建 store、store/index.js 、store/modules 、 store/modules/counter.js
+                store                       Vuex仓库开发的工作目录
+                store/index.js              仓库的输出文件
+                store/modules               目录用于防止各个模块
+                store/modules/counter.js    使用个加数模块
+
+            counter.js 中的代码如下：
+                export default {
+                  namespaced: true, // 定义独立的命名空间
+                  state: {
+                    count: 0
+                  },
+                  getters: {
+                    // 在模块中，计算方法还会具有 rootState rootGetters参数以获取根模块中的数据
+                    tenTimesCount(state, getters, rootState, rootGetters) {
+                      console.log(state, getters, rootState, rootGetters);
+                      return state.count * 10;
+                    }
+                  },
+
+                  mutations: {
+                    addCount(state, num) {
+                      state.count += num || 1
+                    }
+                  },
+                  actions: {
+                    // context 具有和 store 实例相同的属性和方法
+                    // 可以通过context 获取state和getters 中的值，获取提交mutation，分发action
+                    // 在模块中，context 还会具有rootState和rootGetters属性以获取根模块中的数据
+                    addCountAsync(context, num) {
+                      setInterval(function () {
+                        if (context.state.count < 2000) {
+                          context.commit('addCount', num || 100)
+                        }
+                      }, num || 100)
+                    }
+                  }
+                }
+
+            index.js 代码如下：
+                import Vue from 'vue';
+                import Vuex from 'vuex';
+                import Counter from "./modules/counter"; // 引入加数模块
+
+                Vue.use(Vuex) // 安装插件
+
+                export default new Vuex.Store ({
+                  modules : {
+                    Counter
+                  }
+                })
+
+            要在Vue实例中引入这个仓库，还需要修改两个文件，main.js 和 HelloWorld.vue
+            其次，修改 main.js
+                // The Vue build version to load with the `import` command
+                // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+                import Vue from 'vue'
+                import App from './App'
+                import router from './router'
+                import store from './store'
+
+                Vue.config.productionTip = false
+
+                /* eslint-disable no-new */
+                new Vue({
+                  el: '#app',
+                  router,
+                  store,  // 注册store仓库
+                  components: { App },
+                  template: '<App/>'
+                })
+
+            修改 components/HelloWorld.vue
+
+                <template>
+                  <div class="hello">
+                    <h2>count : {{count}}</h2>
+                    <h2>ten times : {{tenTimesCount}}</h2>
+                    <button @click="addCountAsync(50)">add Count</button>
+                    <button @click="addCountCount(20)">add Count2</button>
+                  </div>
+                </template>
+
+                <script>
+                import {mapState,mapGetters,mapMutations,mapActions} from "vuex";
+
+                export default {
+                  name: 'HelloWorld',
+                  computed: {
+                    ...mapState('counter',['count']),
+                    ...mapGetters('counter',['tenTimesCount'])
+                  },
+                  methods:{
+                    ...mapMutations('counter',['addCount']),
+                    ...mapActions('counter',['addCountAsync'])
+                  }
+                }
+                </script>
+
+                <!-- Add "scoped" attribute to limit CSS to this component only -->
+                <style scoped>
+                  h1 , h2 {
+                    font-weight: normal;
+                  }
+
+                  ul {
+                    list-style-type: none;
+                    padding: 0;
+                  }
+
+                  li {
+                    display: inline-block;
+                    margin: 0 10px;
+                  }
+
+                  a {
+                    color: #42b983;
+                  }
+                </style>
 
 
 
