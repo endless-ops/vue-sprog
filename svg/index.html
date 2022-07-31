@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!-- svg 类似于一张 画纸 -->
+<svg xlmns="http://www.w3.org/2000/svg"
+     width="300px"
+     height="150px"
+     style="background-color: #e5e5e5">
+    <!-- 在 画纸上绘制了一个圆 -->
+    <circle r="40" cx="100" cy="50" stroke="black" stroke-width="2" fill="white"></circle>
+</svg>
+
+<br/>
+<img alt="" src="hm.svg"/>
+<br/>
+<svg xlmns="http://www.w3.org/2000/svg" width="600px" height="600px" viewBox="0 0 1200 1200"
+     style="border: 1px solid #ccc;">
+    <!-- stroke : 边框    fill：填充颜色，stroke-width：边框宽度 -->
+    <!-- rect ： 矩形 -->
+    <rect x="50" y="50" width="300" height="300" stroke="#000" fill="#fff" stroke-width="3"></rect>
+    <!-- 以圆心 坐标 （cx,cy） 和半径r来定义圆形 -->
+    <!-- circle ： 圆形 -->
+    <circle r="150" cx="600" cy="200" stroke="#000" fill="#fff" stroke-width="3"></circle>
+    <!-- 以圆心 坐标 （cx,cy）,水平半径 rx 和 垂直半径 ry 来定义椭圆 -->
+    <!-- ellipse ： 椭圆 -->
+    <ellipse rx="150" ry="100" cx="1000" cy="200" stroke-width="3" stroke="#000" fill="#fff"></ellipse>
+    <!-- 以起点坐标 (x1,y1) 和 终点坐标(x2,y2) 来定义线段 -->
+    <!-- line ： 线段 -->
+    <line x1="50" x2="350" y1="450" y2="750" stroke="#000" stroke-width="3"></line>
+    <!-- 以路径上各拐点的坐标(x1,y1)...(xn,yn) 来定义折线 -->
+    <!-- polyline ： 折线 -->
+    <polyline points="600,450,750,600,600,750,450,600" stroke="#000" fill="#fff" stroke-width="3"></polyline>
+    <!-- 以路径上各拐点的坐标(x1,y1)...(xn,yn) 来定义多边形，终点将连接起点形成闭合 -->
+    <!-- polygon ： 多边形 -->
+    <polygon points="1000,450,1150,600,1000,750,850,600" stroke-width="3" fill="#fff" stroke="#000"></polygon>
+    <!-- 以各种线段和曲线的变形方式来定义路径，这里不再拓展 -->
+    <!-- path ： 路径 -->
+    <!--
+        下面的命令可用于路径数据：
+            M = moveto
+            L = lineto
+            H = horizontal lineto
+            V = vertical lineto
+            C = curveto
+            S = smooth curveto
+            Q = quadratic Belzier curve
+            T = smooth quadratic Belzier curveto
+            A = elliptical Arc
+            Z = closepath
+        注释：以上所有命令均允许小写字母。大写表示绝对定位，小写表示相对定位。
+    -->
+    <path d="M100,1050A100,150,30,1,1,200,1150M100,1050A70,150,30,0,1,200,1150" stroke="#000" fill="#fff"
+          stroke-width="3"></path>
+    <!-- text ： 文本； x和y 是文本位置的坐标 -->
+    <text x="500" y="500" fill="#f00" style="font-size: 18px">I Love You</text>
+    <!-- text ： 文本； x和y 是文本位置的坐标,旋转的文字 -->
+    <text x="600" y="600" fill="red" transform="rotate(30 20,40)">I love SVG</text>
+
+    <!-- 将渐变于文本结合使用 -->
+    <defs>
+        <path id="path1" d="M75,20 a1,1 0 0,0 100,0"/>
+    </defs>
+    <text x="10" y="100" style="fill:red;">
+        <textPath xlink:href="#path1">I love SVG I love SVG</textPath>
+    </text>
+
+
+    <!-- 元素可以安排任何分小组与<tspan> 元素的数量。每个<tspan> 元素可以包含不同的格式和位置。几行文本(与 <tspan> 元素): -->
+    <text x="10" y="20" style="fill:red;">Several lines:
+        <tspan x="10" y="45">First line</tspan>
+        <tspan x="10" y="70">Second line</tspan>
+    </text>
+
+    <!-- 作为链接文本（ <a> 元素）： -->
+    <a xlink:href="http://www.w3schools.com/svg/" target="_blank">
+        <text x="1000" y="15" fill="red">I love SVG</text>
+    </a>
+
+    <!--
+        SVG Stroke 属性
+        SVG提供了一个范围广泛stroke 属性。在本章中，我们将看看下面：
+
+            stroke
+            stroke-width
+            stroke-linecap
+            stroke-dasharray
+        所有stroke属性，可应用于任何种类的线条，文字和元素就像一个圆的轮廓。
+
+        SVG stroke 属性
+            Stroke属性定义一条线，文本或元素轮廓颜色：
+
+        SVG stroke-width 属性
+            stroke- width属性定义了一条线，文本或元素轮廓厚度：
+
+        SVG stroke-linecap 属性
+            stroke-linecap属性定义不同类型的开放路径的终结：
+
+        SVG stroke-dasharray 属性
+            stroke-dasharray属性用于创建虚线：
+
+    -->
+
+    <!--
+        SVG 滤镜
+            在本教程中，我们将仅展示一个可能采用的特殊效果。基础知识展示后，你已经学会使用特殊效果，你应该能够适用于其他地方。这里的关键是给你一个怎样做SVG的想法，而不是重复整个规范。
+
+            SVG可用的滤镜是：
+
+                feBlend - 与图像相结合的滤镜
+                feColorMatrix - 用于彩色滤光片转换
+                feComponentTransfer
+                feComposite
+                feConvolveMatrix
+                feDiffuseLighting
+                feDisplacementMap
+                feFlood
+                feGaussianBlur
+                feImage
+                feMerge
+                feMorphology
+                feOffset - 过滤阴影
+                feSpecularLighting
+                feTile
+                feTurbulence
+                feDistantLight - 用于照明过滤
+                fePointLight - 用于照明过滤
+                feSpotLight - 用于照明过滤
+                Remark 除此之外，您可以在每个 SVG 元素上使用多个滤镜！
+
+    -->
+
+    <!--
+        SVG 模糊效果
+            <defs> 和 <filter>
+                所有互联网的SVG滤镜定义在<defs>元素中。<defs>元素定义短并含有特殊元素（如滤镜）定义。
+
+                <filter>标签用来定义SVG滤镜。<filter>标签使用必需的id属性来定义向图形应用哪个滤镜？
+
+                SVG <feGaussianBlur>
+                    <feGaussianBlur> 元素是用于创建模糊效果：
+
+    -->
+
+    <!--
+        代码解析：
+
+            <filter>元素id属性定义一个滤镜的唯一名称
+            <feGaussianBlur>元素定义模糊效果
+            in="SourceGraphic"这个部分定义了由整个图像创建效果
+            stdDeviation属性定义模糊量
+            <rect>元素的滤镜属性用来把元素链接到"f1"滤镜
+    -->
+    <defs>
+        <filter id="f1" x="0" y="0">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="15"/>
+        </filter>
+    </defs>
+    <rect width="90" height="90" stroke="green" stroke-width="3"
+          fill="yellow" filter="url(#f1)"/>
+
+
+    <!-- - ----------------------------SVG 阴影 start--------------------------------------- -->
+    <!--
+        SVG 阴影
+            <defs> 和 <filter>
+                所有互联网的SVG滤镜定义在<defs>元素中。<defs>元素定义短并含有特殊元素（如滤镜）定义。
+
+                <filter>标签用来定义SVG滤镜。<filter>标签使用必需的id属性来定义向图形应用哪个滤镜？
+
+                SVG <feOffset>
+                实例 1
+                    <feOffset>元素是用于创建阴影效果。我们的想法是采取一个SVG图形（图像或元素）并移动它在xy平面上一点儿。
+
+                    第一个例子偏移一个矩形（带<feOffset>），然后混合偏移图像顶部（含<feBlend>）：
+    -->
+    <defs>
+        <filter id="f1" x="0" y="0" width="200%" height="200%">
+            <feOffset result="offOut" in="SourceGraphic" dx="20" dy="20"/>
+            <feBlend in="SourceGraphic" in2="offOut" mode="normal"/>
+        </filter>
+    </defs>
+    <rect width="90" height="90" stroke="green" stroke-width="3"
+          fill="yellow" filter="url(#f1)"/>
+
+    <!--
+        实例 2
+            现在，偏移图像可以变的模糊（含 <feGaussianBlur>）:
+    -->
+    <defs>
+        <filter id="f1" x="0" y="0" width="200%" height="200%">
+            <feOffset result="offOut" in="SourceGraphic" dx="20" dy="20"/>
+            <feGaussianBlur result="blurOut" in="offOut" stdDeviation="10"/>
+            <feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>
+        </filter>
+    </defs>
+    <rect width="90" height="90" stroke="green" stroke-width="3"
+          fill="yellow" filter="url(#f1)"/>
+
+    <!--
+           实例 3
+                现在，制作一个黑色的阴影：
+    -->
+    <defs>
+        <filter id="f1" x="0" y="0" width="200%" height="200%">
+            <feOffset result="offOut" in="SourceAlpha" dx="20" dy="20"/>
+            <feGaussianBlur result="blurOut" in="offOut" stdDeviation="10"/>
+            <feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>
+        </filter>
+    </defs>
+    <rect width="90" height="90" stroke="green" stroke-width="3"
+          fill="yellow" filter="url(#f1)"/>
+
+
+    <!--
+        实例 4
+            现在为阴影涂上一层颜色：
+    -->
+    <defs>
+        <filter id="f1" x="0" y="0" width="200%" height="200%">
+            <feOffset result="offOut" in="SourceGraphic" dx="20" dy="20"/>
+            <feColorMatrix result="matrixOut" in="offOut" type="matrix"
+                           values="0.2 0 0 0 0 0 0.2 0 0 0 0 0 0.2 0 0 0 0 0 1 0"/>
+            <feGaussianBlur result="blurOut" in="matrixOut" stdDeviation="10"/>
+            <feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>
+        </filter>
+    </defs>
+    <rect width="90" height="90" stroke="green" stroke-width="3"
+          fill="yellow" filter="url(#f1)"/>
+
+    <!-- <feColorMatrix>过滤器是用来转换偏移的图像使之更接近黑色的颜色。 '0.2'矩阵的三个值都获取乘以红色，绿色和蓝色通道。降低其值带来的颜色至黑色（黑色为0） -->
+
+
+    <!-- - ----------------------------SVG 阴影 end--------------------------------------- -->
+
+    <!--
+        渐变是一种从一种颜色到另一种颜色的平滑过渡。另外，可以把多个颜色的过渡应用到同一个元素上。
+        SVG渐变主要有两种类型：
+            Linear
+            Radial
+
+        <linearGradient>元素用于定义线性渐变。
+        <linearGradient>标签必须嵌套在<defs>的内部。<defs>标签是definitions的缩写，它可对诸如渐变之类的特殊元素进行定义。
+        线性渐变可以定义为水平，垂直或角渐变：
+            当y1和y2相等，而x1和x2不同时，可创建水平渐变
+            当x1和x2相等，而y1和y2不同时，可创建垂直渐变
+            当x1和x2不同，且y1和y2不同时，可创建角形渐变
+    -->>
+    <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:rgb(255,255,0);stop-opacity:1"/>
+            <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1"/>
+        </linearGradient>
+    </defs>
+    <ellipse cx="200" cy="70" rx="85" ry="55" fill="url(#grad1)"/>
+
+    <!--
+        实例 2
+            定义一个垂直线性渐变从黄色到红色的椭圆形：
+    -->
+    <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:rgb(255,255,0);stop-opacity:1"/>
+            <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1"/>
+        </linearGradient>
+    </defs>
+    <ellipse cx="200" cy="70" rx="85" ry="55" fill="url(#grad1)"/>
+
+    <!--
+        实例 3
+            定义一个椭圆形，水平线性渐变从黄色到红色并添加一个椭圆内文本：
+    -->
+    <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:rgb(255,255,0);stop-opacity:1"/>
+            <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1"/>
+        </linearGradient>
+    </defs>
+    <ellipse cx="200" cy="70" rx="85" ry="55" fill="url(#grad1)"/>
+    <text fill="#ffffff" font-size="45" font-family="Verdana" x="150" y="86">
+        SVG
+    </text>
+
+    <!--
+        SVG 渐变- 放射性
+            SVG 放射性渐变 - <radialGradient>
+                <radialGradient>元素用于定义放射性渐变。
+
+                <radialGradient>标签必须嵌套在<defs>的内部。<defs>标签是definitions的缩写，它可对诸如渐变之类的特殊元素进行定义。
+
+            实例 1
+                定义一个放射性渐变从白色到蓝色椭圆：
+    -->
+    <defs>
+        <radialGradient id="grad1" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+            <stop offset="0%" style="stop-color:rgb(255,255,255);
+      stop-opacity:0"/>
+            <stop offset="100%" style="stop-color:rgb(0,0,255);stop-opacity:1"/>
+        </radialGradient>
+    </defs>
+    <ellipse cx="200" cy="70" rx="85" ry="55" fill="url(#grad1)"/>
+
+    <!--
+        实例 2
+            定义放射性渐变从白色到蓝色的另一个椭圆：
+    -->
+    <defs>
+        <radialGradient id="grad1" cx="20%" cy="30%" r="30%" fx="50%" fy="50%">
+            <stop offset="0%" style="stop-color:rgb(255,255,255);
+      stop-opacity:0"/>
+            <stop offset="100%" style="stop-color:rgb(0,0,255);stop-opacity:1"/>
+        </radialGradient>
+    </defs>
+    <ellipse cx="200" cy="70" rx="85" ry="55" fill="url(#grad1)"/>
+
+</svg>
+
+<br />
+<!-- 渐变 -->
+<h1>svg 线性渐变</h1>
+<svg xlmns="http://www.w3.org/2000/svg" width="600px" height="300px" viewBox="0 0 600 300"
+     style="border: 1px solid #ccc;" >
+    <defs>
+        <!-- 渐变需要提供id以便图形引用 -->
+        <!-- 线性渐变需要确定渐变起始位置 （x1,y1） 和 渐变终止位置 (x2,y2) -->
+        <linearGradient id="linear" x1="0%" y1="0%" x2="100%" y2="0%">
+            <!-- 定义渐变方向上各变化点（色站）的属性 -->
+            <!-- offset 代表位置，stop-color 代表颜色， stop-opacity代表透明度 -->
+            <stop offset="0%" stop-color="#000" stop-opacity="1"></stop>
+            <stop offset="100%" stop-color="#fff" stop-opacity="1"></stop>
+        </linearGradient>
+    </defs>
+
+    <rect x="25" y="50" width="150" height="200" fill="url(#linear)"></rect>
+    <circle cx="300" cy="150" r="100" fill="url(#linear)"></circle>
+    <ellipse cx="500" cy="150" rx="75" ry="100" fill="url(#linear)"></ellipse>
+</svg>
+
+
+<h1>svg 径向渐变</h1>
+<svg xlmns="http://www.w3.org/2000/svg" width="600px" height="300px" viewBox="0 0 600 300"
+     style="border: 1px solid #ccc;" >
+    <defs>
+        <!-- 渐变需要提供id以便图形引用 -->
+        <!-- 径向渐变需要确定渐变中心位置 （cx,cy） 、 渐变半径和渐变焦位置（fx,fy） -->
+        <!-- 渐变中心是渐变主体相对于图形的位置 -->
+        <!-- 渐变焦点是渐变开始的位置 -->
+        <RadialGradient id="radial" cx="50%" cy="50%" fx="50%" fy="50%" r="50%">
+            <!-- 定义渐变方向上各变化点（色站）的属性 -->
+            <!-- offset 代表位置，stop-color 代表颜色， stop-opacity代表透明度 -->
+            <stop offset="0%" stop-color="#000" stop-opacity="1"></stop>
+            <stop offset="100%" stop-color="#fff" stop-opacity="1"></stop>
+        </RadialGradient>
+    </defs>
+
+    <rect x="25" y="50" width="150" height="200" fill="url(#radial)" stroke="#ccc"></rect>
+    <circle cx="300" cy="150" r="100" fill="url(#radial)" stroke="#ccc"></circle>
+    <ellipse cx="500" cy="150" rx="75" ry="100" fill="url(#radial)" stroke="#ccc"></ellipse>
+</svg>
+
+</body>
+</html>
