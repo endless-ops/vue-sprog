@@ -1,0 +1,15 @@
+线上商城
+
+1. webpack是什么？
+
+
+2. main.js 需要修改
+    加入一些代码：
+        import './assets/stylesheets/base.css'
+        import 'font-awesome/css/font-awesome.min.css'
+
+3.Font Awesome 图标库
+    3.1 引入
+            <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"/>
+        这里使用了npm构建项目，所以推荐使用安装依赖
+            cnpm install font-awesome --save-dev
