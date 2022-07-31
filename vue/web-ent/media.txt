@@ -1,0 +1,71 @@
+媒体查询
+
+media_type 代表媒体类型，可选的值为
+    类型                      解释
+    all                      所有设备
+    braille                  盲文
+    embossed                 盲文打印
+    handheld                 手持设备
+    print                    文档打印或打印预览模式
+    projection               项目演示，如幻灯片
+    screen                   彩色设备屏幕
+    speech                   演讲
+    tty                      固定字间距的网格媒体，如电传打字机
+    tv                       电视
+
+exp为条件表达式，可用的值
+
+    媒体特性            可采用的值               可用类型                可否 min/max              简介
+    width               <length>              视觉屏幕/触摸设备         yes                      定义输出设备中页面的可见区域宽度
+    height              <length>              视觉屏幕/触摸设备         yes                      定义输出设备中页面的可见区域高度
+    device-width        <length>              视觉屏幕/触摸设备         yes                      定义输出设备中页面的可见宽度
+    device-height       <length>              视觉屏幕/触摸设备         yes                      定义输出设备中页面的可见高度
+    orientation         portrait landscape    位图介质                 no                       portrait 代表横屏，landscape 代表竖屏
+    aspect-ratio        <ratio>               位图介质                 yes                      定义浏览器的长宽比
+    device-aspect-ratio <ratio>               位图介质                 yes                      定义屏幕的长宽比
+    color               <integer>             视觉媒体                 yes                      定义输出设备彩色原件数目，如非彩色设备，值为0
+    color-index         <integer>             视觉媒体                 yes                      定义输出设备的彩色查询表中的条目数，如没有使用彩色查询表，则值为0
+    monochrome          <integer>             视觉媒体                 yes                      定义在一个单色框架缓存区中每像素包含的彩色原件个数。如不是单色设备，值为0
+    resolution          <resolution>          位图介质                 yes                      定义设备的分表率，如96dpi
+    scan                progressive|interlace 电视类型                 no                       定义电视类设备的扫描方式，progressive表示逐行扫描，interlace表示隔行扫描
+    grid                <integer>             栅格设备                 no                       查询输出设备是否使用栅格或者点阵。 1代表 是 ，0代表 否
+
+
+and 、not、only 为连接符，含义如下：
+
+    关键字                             说明
+    only                              限定某种设备
+    and                               逻辑与，连接设备名或表达式
+    not                               排除某种设备
+    ,                                 表示设备列表
+
+
+
+引入样式表文件或在样式表中直接使用媒体查询，代码如下：
+    <!-- 1.引入位置 -->
+    <link rel="stylesheet" type="text/css" media="only screen and (max-width:415px) ,only screen and (max-device-width:415px)" href="index.css" />
+
+    <!-- 2. 样式表中 -->
+    <style>
+        @media screen and (min-width:415px) and (max-width:600px) {
+            .header {
+                height:800px
+            }
+        }
+    </style>
+
+
+JS布局
+    computed: {
+        isAndroid() {
+            // navigator 为浏览器内置对象
+            // 此处通过 navigator.userAgent获取用户的设备信息
+            let u = navigator.userAgent
+            return u.indexOf('Android') > -1 || u.indexOf('Adr') > -1
+        },
+
+        isIOS() {
+            let u = navigator.userAgent
+            return !!u.match(/\(i[^;]+;(U;)?CPU.+Mac OS X /)
+        }
+    }
