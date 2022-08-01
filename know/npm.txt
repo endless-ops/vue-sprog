@@ -1,0 +1,49 @@
+NPM入门
+    npm --version   查看版本信息
+
+    npm init 初始化目录，生成 package.json -y和-yes参数表示所有的选项 均选择 yes
+
+    npm install 安装package.json 中的所有依赖
+
+    npm install --production        安装 package.json 中的 dependencies 下的依赖
+
+    npm install <package>   安装指定依赖
+
+    npm install <package> [-g] 全局安装指定依赖
+
+    npm install <package> [--save-dev] 安装指定依赖，并将其记录在 devDependencies中
+
+    npm install <package> [--no-save] 安装指定依赖，依赖不需要记录到 package.json  中
+
+    npm uninstall <package> 移除指定依赖
+
+    npm prune   移除不在 package.json 却在 node_modules 中的依赖
+
+    npm update 升级全部依赖的版本
+
+    npm update <package>     升级指定依赖的版本
+
+    npm outdated            查看过期依赖
+
+    npm list <package>     查看依赖的当前版本
+    npm search  <string>   搜索包含关键字的依赖
+    npm ls [-g] [--depth=0]  查看项目中或全部的依赖包，可指定层级为0
+    npm view <package> [field][--json]   查看依赖信息，包含历史版本； 可指定 field 来查看某个键值； 可添加 --json 参数以 json格式显示结果
+    npm home <package> 在浏览器端打开依赖的主页
+    npm repo <package> 在浏览器端打开依赖的github地址
+    npm docs <package> 查看依赖的文档
+    npm bugs <package> 查看依赖的bug
+
+
+
+
+
+    npm install jquery --save
+
+
+
+    npm install -g cnpm --registry=https://registry.npm.taobao.org
+
+
+    cnpm install jquery --save
+

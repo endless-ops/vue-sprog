@@ -1,0 +1,60 @@
+闭包和对象引用
+    闭包是能够访问其他函数内部变量的函数。
+
+    function shapeFactory(type) {
+        var type = type || 'rect'
+        var counter = 0
+        return {
+            createShape : function (size,color) {
+                counter++
+                console.log('%s %s %s',type,size|| 20,color||'grey')
+            },
+            getCounter : function () {
+                return counter;
+            }
+        }
+    }
+
+    // 圆形工厂
+    var circleFactory = shapeFactory('circle');
+    circleFactory.createShape();
+    console.log(circleFactory.getCounter());
+
+    circleFactory.createShape(15,'red');
+    console.log(circleFactory.getCounter());
+
+
+    // 矩形工厂
+    var rectFactory = shapeFactory();
+    rectFactory.createShape();
+    console.log(circleFactory.getCounter());
+
+对象引用
+    var origin = {
+        greeeting : 'welcome'
+    }
+
+    var copy = origin;
+    origin.farewell = 'byebye'
+    console.log(copy.greeeting,copy.farewell)
+
+
+    var origin = {
+        greeeting : 'welcome'
+    }
+
+    var copy = origin;
+    origin = {
+        farewell:'byebye'  // 深度拷贝
+    }
+    console.log(copy.greeeting,copy.farewell)
+
+
+
+    var origin = {
+        greeting:'welcome'
+    }
+
+    var copy = JSON.parse(JSON.stringify(origin));  // 深度拷贝
+    origin.farewell = 'byebye'
+    console.log(copy.greeeting,copy.farewell)

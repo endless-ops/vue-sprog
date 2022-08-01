@@ -1,1 +1,19 @@
 常用命令：
+    git clone  克隆远程仓库
+    git init   初始化一个仓库
+    git add    将文件修改添加到缓冲区
+    git mv     移动或重命名一个文件、文件夹或快捷方式
+    git reset  回退项目版本
+    git rm     将文件修改从缓冲区中删除
+    git status 显示项目当前状态
+    git log    显示项目日志
+    git branch 显示项目分支
+    git checkout 切换分支或重置文件
+    git commit  提交项目修改到仓库
+    git diff    对比版本之间、版本和当前共工作状态之间的差异
+    git merge   合并文件
+    git rebase  将新的提交放在另一个分支的上面
+    git tag     创建、显示 、校验标签对象
+    git fetch   拉取其他仓库的对象和索引
+    git pull    拉取其他仓库内容并和本地分支合并
+    git push    更新远程仓库

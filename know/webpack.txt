@@ -1,0 +1,201 @@
+Webpack 入门
+    1. 简介
+        webpack 是一个前端资源打包工具
+
+    2. 基本示例
+        安装webpack
+            cnpm install webpack webpack-cli -g
+
+        之后，创建一个目录，在目录下创建几个文件：
+            src/index.js
+
+                export default function index() {
+                    document.write('<h1>index</h1>')
+                }
+
+            src/main.js
+                import index from './index'
+                index()
+
+            index.html
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title></title>
+                </head>
+                <body>
+                    <script type="text/javascript" src="dist/bundle.js"></script>
+                </body>
+                </html>
+
+            webpack.config.js
+                const path = require('path')
+                module.exports = {
+                    entry : './src/main.js', // 入口文件
+                    output : {
+                            path : path.resolve(_dirname,'dist'),// 输出路径
+                            filename : 'bundle.js'   // 输出文件名称
+                    }
+                }
+
+        再此目录下输入命令行： webpack
+        进行打包
+
+    配置 loader
+        webpack 本身只能处理 JS 模块，若打包更多的文件类型，如CSS，还要为其配置 loader 插件。
+        cnpm install css-loader style-loader
+        然后在目录下 添加 'src/index.css'文件
+            index.css
+                body {
+                    background-color:#eee
+                }
+
+        在 main.js 引入 index.css
+            import index from './index'
+            import './index.css'
+            index()
+
+        在webpack.config.js 文件中配置 loader
+        webpack.config.js
+            const path = require('path')
+            module.exports = {
+                entry : './src/main.js', // 入口文件
+                output : {
+                        path : path.resolve(_dirname,'dist'),// 输出路径
+                        filename : 'bundle.js'   // 输出文件名称
+                },
+                module : {
+                    rules : [
+                        {
+                            test : /\.css$/, // 正则表达式，匹配文件类型
+                            loader: 'style-loader!css-loader'  // 声明使用什么loader进行处理
+                        }
+                    ]
+                }
+            }
+
+    配置 plugin
+        安装 依赖命令行
+            cnpm install webpack html-webpack-plugin --save-dev
+
+        修改 webpack.config.js 文件
+        webpack.config.js
+            const path = require('path')
+            const webpack = require('webpack')
+            const HtmlWebpackPlugin = require('html-webpack-plugin')
+
+            module.exports = {
+                entry : './src/main.js', // 入口文件
+                output : {
+                        path : path.resolve(_dirname,'dist'),// 输出路径
+                        filename : 'bundle.js'   // 输出文件名称
+                },
+                module : {
+                    rules : [
+                        {
+                            test : /\.css$/, // 正则表达式，匹配文件类型
+                            loader: 'style-loader!css-loader'  // 声明使用什么loader进行处理
+                        }
+                    ]
+                },
+                plugins : [
+                    new Webpack.BannerPlugin('Created by lonelydawn')
+                    new HtmlWebpackPlugin({
+                            filename : './index.html',
+                            template : './index.html',
+                            inject : 'body',
+                            hash : true
+                    })
+                ]
+            }
+
+实战示例
+    const path = require('path')
+    const webpack = require('webpack')
+    const htmlWebpackPlugin = require('html-webpack-plugin')
+    const extractTextPlugin = require('extract-text-webpack-plugin')
+
+    module.exports = {
+        devtool: 'eval-source-map',
+        entry : path.join(_dirname,'src/main.js'),
+        output: {
+            path : path.join(_dirname,'dist'),
+            filename:'bundle.js'
+        },
+        devServer : {
+            contentBase : './static',
+            historyApiFallback:true,
+            inline : true,
+            compress: true,
+            port : 8080,
+            hot : true
+        },
+        module : {
+            rules : [
+                {
+                    test:/\/html$/,
+                    use : 'html-loader'
+                },
+                {
+                    test : /\.css$/,
+                    use :ExtractTextPlugin.extract({
+                        fallback:'style-loader',
+                        use : 'css-loader'
+                    })
+                },
+                {
+                    test : /\.js$/,
+                    exclude : /node_modules/,
+                    loader: 'babel-loader'
+                },
+                {
+                    test:/\.(scss|sass)$/,
+                    use : ExtractTextPlugin.extract({
+                        fallback : 'style-loader',
+                        user: [
+                            {
+                                loader:'css-loader',
+                                options: {
+                                    url:false,
+                                    minimize:true,
+                                    sourcemap:true
+                                }
+                            },
+                            {
+                                loader: 'sass-loader',
+                                options: {
+                                    sourcemap:true
+                                }
+                            }
+                        ]
+                    })
+                },
+                {
+                    test:/\.(woff2?|eot|ttf|otf|svg)(\?.*)?$/, // 打包字体文件
+                    use: 'file-loader'
+                },
+                {
+                    test : /\.(png|jpe?g|gif)(\?.*)?$/, // 打包图片资源
+                    use:'url-loader?limit=8192&name=images/[hash].[name].[ext]'
+                }
+            ]
+        },
+        plugins:[
+            new webpack.HotModuleReplacementPlugin(), // 热重载
+            new HtmlWebpackPlugin({
+                title: 'Generator',
+                filename:'./index.html',
+                template: 'src/index.html',
+                favicon: 'favicon.ico',
+                inject:'body',
+                hash:true
+            }),
+            // 引入以作为其他插件的依赖
+            // new webpack.ProvidePlugin({
+            //     $:'jquery',
+            //     jQuery:'jquery'
+            // }),
+
+            new ExtractTextPlugin('style.css') // 将样式文件抽离单独打包
+        ]
+    }
