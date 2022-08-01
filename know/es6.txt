@@ -1,0 +1,187 @@
+多行字符串
+    // ES5 :
+        var content = '<div class="container">' +
+            '<div class="header"></div>' +
+            '<div class="body"></div>' +
+            '<div class="footer"></div>' +
+            '</div>'
+
+    // ES6
+        var content =  `<div class="container">
+    <div class="header"></div>
+    <div class="body"></div>
+    <div class="footer"></div>
+    </div>`
+
+
+2. 字符串模板
+    ``还可以用于创建 字符串模板、可以在字符串模板中输出变量
+
+    let hello = 'hello',
+    let helloWorld = `{hello} world`
+    console.log(helloWorld)
+
+3. 块级作用域
+    在 ES5中，我们使用 var 关键字来声明 函数作用域的变量
+    var 关键字并不生成作用域，这意味着在这两者的代码块中声明的变量在代码块外依然可以访问
+        for(var i = 0; i < 10; i++) {}
+        console.log(i)
+
+    在ES6中，我们可以使用 let 关键字 声明块级作用域的变量
+    for(let i = 0; i < 10; i++) {}
+    console.log(i)
+
+
+
+4. 默认参数
+    在 ES5中，对函数形参设置默认值：
+        var createShape = function (type,size,color) {
+            var type = type || 'circle'
+            var size = size || 20
+            var color = color || 'red'
+        }
+
+    在 ES6 中，
+        var createShape = function (type = 'circle',size = 20,color = '#417b9f') {
+
+        }
+5. 对象字面里
+    使用 ES5 语法 来声明一个引用外部变量或者包含方法的对象时
+        var msg = 'hell0'
+        var object = {
+            msg : msg,
+            logMsg : function (){
+                console.log(this.msg)
+            }
+        }
+
+    在ES6中则简化了这一写法，当对象引用外部变量和定义方法时，可以不再使用键值对的形式，
+    var msg = 'hell0'
+    var object = {
+        msg,
+        logMsg : function (){
+            console.log(this.msg)
+        }
+    }
+
+6. 析构赋值
+    在ES5 中，
+        var author = {name:'long',email:'long@126.com'}
+        var name = author.name;
+        var email = author.email
+
+    在 ES6 中
+        var author = {name:'long',email:'long@126.com'}
+        var {name,email} = author;
+        var {name:username,email:contact} = author;
+
+    除了对象外，我们还可以对更多类型的变量使用析构语法，
+    // 数组
+    let counter = [1,2,3]
+    let [one,two,three] = counter
+    let {0:four,1:five,2:six} = [4,5,6]
+
+    // 字符串
+    let [a,b,c] = 'abc'
+    let {length:len} = 'abc'
+
+    // 数值和布尔值
+    let {toString:s1} = 123
+    let {toString:s2} = true
+
+
+7. 箭头函数
+    在 ES6中，任何需要匿名函数的地方，都可以使用箭头函数来替代
+
+        document.body.onclick = function() {}
+
+        setTimeout (function() {
+
+        },10)
+
+        var foo = {
+            init : function () {
+
+            }
+        }
+
+        var hub = function () {}
+
+    使用箭头函数的写法：
+
+        document.body.onclick = () => {}
+        setTimeout (() => {},10)
+        var foot = {
+            init : () => {}
+        }
+
+        var hub = () => {}
+        foo.init()
+
+    箭头函数不会创建函数作用域，箭头函数中的this 将指向父级函数作用域
+
+
+8. 类和对象
+
+    class People { // 使用class 关键字定义类
+            constructor(name) { // 构造器
+                this.country = 'China'  // 静态变量
+                this.name = name
+            }
+
+            getName() {
+                return this.name
+            }
+
+            getCountry() {
+                return this.country
+            }
+        //
+    }
+
+    class Author extends People {
+
+        constructor (name,email) {
+            super(name);
+            this.email = email
+        }
+
+        getEmail() {
+            return this.email
+        }
+
+
+    }
+
+    let p = new People('Jackson');
+    console.log(p.getName())
+    console.log(p.getCountry())
+
+    let a = new Author('long','long@126.com')
+    console.log(a.getName())
+    console.log(a.getCountry())
+    console.log(a.getCountry())
+
+
+9. 模块化
+    ES6 提供了 export 和 import 一对关键字进行模块导出和导入
+
+    greetings.js
+
+    export const author = 'John'
+    export function sayHello(name) {
+        return `Hello ${name}`
+    }
+
+    export function sayHelloByAuthor(name) {
+        return `${author} : ${sayHello(name)}`
+    }
+
+    main.js
+    // 析构引入
+    import {author,sayHello,sayHelloByAuthor} from '../assets/data'
+    // 整体引入
+    import * as greetings from '../assets/data'
+
+9. Promise 函数
+
